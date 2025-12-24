@@ -1,65 +1,423 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Online Siêu Tốc</title>
-    <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quản Lý Kho Chuyên Nghiệp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
     <style>
-        body { font-family: -apple-system, sans-serif; background: #efe7dd; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        #header { background: #075e54; color: white; padding: 15px; text-align: center; font-weight: bold; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px; border-radius: 10px; max-width: 80%; word-wrap: break-word; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .msg.me { background: #dcf8c6; align-self: flex-end; border-top-right-radius: 0; }
-        .msg.them { background: white; align-self: flex-start; border-top-left-radius: 0; }
-        .msg b { display: block; font-size: 11px; color: #128c7e; margin-bottom: 3px; }
-        footer { padding: 10px; background: #f0f0f0; display: flex; gap: 8px; }
-        input { flex: 1; padding: 12px; border: none; border-radius: 20px; outline: none; font-size: 16px; }
-        button { background: #128c7e; color: white; border: none; padding: 0 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #e9eff5; color: #343a40; padding-top: 0; }
+        .navbar { margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        main { max-width: 850px; margin: auto; padding: 10px; }
+        section { background-color: #ffffff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); display: none; }
+        section.active { display: block; }
+        h2 { border-bottom: 2px solid #e0e6ea; padding-bottom: 12px; margin-bottom: 25px; }
+        .nhap-title { color: #007bff; }
+        .xuat-title { color: #dc3545; }
+        .camera-area { width: 100%; max-width: 450px; margin: 20px auto; border: 3px solid #007bff; border-radius: 10px; overflow: hidden; display: none; }
+        #camera-area-xh { border-color: #dc3545; }
+        #phieu-xuat-area { border: 2px dashed #333; padding: 20px; background: #fff; margin-top: 20px; border-radius: 8px; }
+        .phieu-header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        tbody tr { cursor: pointer; }
+        tbody tr:hover { background-color: #f8f9fa !important; }
+        @media print { .navbar, form, button, .table-responsive { display: none !important; } #phieu-xuat-area { display: block !important; border: none; } }
     </style>
 </head>
 <body>
-    <div id="header">PHÒNG CHAT TỨ PHƯƠNG</div>
-    <div id="chat-box"></div>
-    <footer>
-        <input type="text" id="msgInput" placeholder="Nhập tin nhắn..." autocomplete="off">
-        <button onclick="send()">GỬI</button>
-    </footer>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-warehouse"></i> KHO QUANG DZ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-section="nhaphang" href="#"><i class="fas fa-download"></i> Nhập hàng & Tồn kho</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-section="xuathang" href="#"><i class="fas fa-upload"></i> Xuất hàng</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="nhaphang" class="active">
+            <h2 class="nhap-title"><i class="fas fa-truck-loading"></i> Quản lý tồn kho</h2>
+            <form id="form-nhaphang">
+                <input type="hidden" id="edit-id-nh" value="">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Barcode:</label>
+                    <div class="input-group">
+                        <input type="text" id="nh-barcode" class="form-control" placeholder="Quét hoặc nhập mã">
+                        <button type="button" id="btn-mo-camera-nh" class="btn btn-info text-white"><i class="fas fa-qrcode"></i></button>
+                    </div>
+                    <div id="camera-area-nh" class="camera-area"></div>
+                </div>
+
+                <div id="nhap-thongtin-sp-nh" style="display:none;" class="mt-3 p-3 bg-info-subtle border border-info rounded">
+                    <div class="mb-3">
+                        <label class="form-label">Tên sản phẩm:</label>
+                        <input type="text" id="ten-sp-nh" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-primary fw-bold">Giá nhập (VNĐ):</label>
+                        <input type="number" id="gia-nhap-nh" class="form-control" placeholder="Nhập giá tiền">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quy đổi:</label>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="dv-lon" class="form-control" placeholder="Thùng">
+                            <input type="text" id="dv-nho" class="form-control" placeholder="12 chai">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số lượng lẻ:</label>
+                        <input type="number" id="so-luong-le" class="form-control">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Số lượng nhập:</label>
+                    <input type="number" id="nh-soluong" class="form-control" value="1">
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" id="btn-submit-nh" class="btn btn-primary btn-lg">Xác nhận nhập kho</button>
+                    <button type="button" id="btn-xoa-nh" class="btn btn-danger" style="display:none;"><i class="fas fa-trash"></i> Xóa mặt hàng này</button>
+                    <button type="button" id="btn-huy-nh" class="btn btn-secondary" style="display:none;">Hủy sửa</button>
+                    <button type="button" id="btn-excel-nh" class="btn btn-success"><i class="fas fa-file-excel"></i> Xuất Excel Tồn Kho</button>
+                </div>
+            </form>
+
+            <div class="table-responsive mt-4">
+                <table id="table-nhaphang" class="table table-striped table-hover align-middle">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Barcode</th>
+                            <th>Tên SP</th>
+                            <th>Giá nhập của 1 </th>
+                            <th>Tồn kho</th>
+                            <th>Lẻ</th>
+                            <th>Đã xuất</th>
+                            <th>Đơn vị</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="xuathang">
+            <h2 class="xuat-title"><i class="fas fa-box-open"></i> Xuất hàng & Tạo phiếu</h2>
+            <form id="form-xuathang">
+                <input type="hidden" id="edit-idx-xh" value="">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Quét mã xuất:</label>
+                    <div class="input-group">
+                        <input type="text" id="xh-barcode" class="form-control border-danger" placeholder="Mã sản phẩm...">
+                        <button type="button" id="btn-mo-camera-xh" class="btn btn-danger"><i class="fas fa-qrcode"></i></button>
+                    </div>
+                    <div id="camera-area-xh" class="camera-area"></div>
+                </div>
+
+                <div id="nhap-thongtin-sp-xh" style="display:none;" class="mt-3 p-3 bg-danger-subtle border border-danger rounded">
+                    <div class="mb-3">
+                        <label class="form-label">Tên SP:</label>
+                        <input type="text" id="ten-sp-xh" class="form-control">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Số lượng xuất:</label>
+                    <input type="number" id="xh-soluong" class="form-control border-danger" value="1">
+                </div>
+                
+                <div class="d-grid gap-2 mb-3">
+                    <button type="submit" id="btn-submit-xh" class="btn btn-danger btn-lg">Thêm vào phiếu tạm</button>
+                    <button type="button" id="btn-xoa-xh" class="btn btn-outline-danger" style="display:none;"><i class="fas fa-trash"></i> Gỡ khỏi phiếu</button>
+                    <button type="button" id="btn-huy-xh" class="btn btn-secondary" style="display:none;">Hủy</button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark"><tr><th>Tên SP</th><th>SL Xuất</th></tr></thead>
+                    <tbody id="list-xuat-tam"></tbody>
+                </table>
+            </div>
+
+            <button id="btn-luu-xuat" class="btn btn-dark btn-lg w-100 mt-3 shadow"><i class="fas fa-save"></i> LƯU & HIỆN PHIẾU XUẤT</button>
+
+            <div id="area-phieu-hien-thi" style="display:none;">
+                <div id="phieu-xuat-area">
+                    <div class="phieu-header">
+                        <h3>PHIẾU XUẤT HÀNG</h3>
+                        <p id="phieu-thoigian"></p>
+                    </div>
+                    <table class="table table-sm table-bordered">
+                        <thead><tr><th>Sản phẩm</th><th>Số lượng</th></tr></thead>
+                        <tbody id="phieu-noi-dung"></tbody>
+                    </table>
+                    <div class="mt-4 d-flex justify-content-between">
+                        <span>Người lập phiếu</span>
+                        <span>Người nhận hàng</span>
+                    </div>
+                    <br><br>
+                </div>
+                <button onclick="window.print()" class="btn btn-outline-primary w-100 mt-3"><i class="fas fa-print"></i> In hoặc Lưu PDF</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <script>
-        // Sử dụng Public Key của Ably (Đã cấu hình để chat tự do)
-        const ably = new Ably.Realtime('786m9A.pY75_A:C-U80p5uYid4kR8Y_X7L8L_KxH_W7M1Y1_R1X1');
-        const channel = ably.channels.get('chat-room-1');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const menuCollapse = document.getElementById('navbarNav');
+        const bsCollapse = new bootstrap.Collapse(menuCollapse, {toggle: false});
 
-        let myName = localStorage.getItem('chat-name') || prompt("Nhập tên của bạn:", "Khách_" + Math.floor(Math.random() * 100));
-        localStorage.setItem('chat-name', myName);
-
-        const chatBox = document.getElementById('chat-box');
-        const msgInput = document.getElementById('msgInput');
-
-        // Nhận tin nhắn real-time
-        channel.subscribe('message', (msg) => {
-            const data = msg.data;
-            const isMe = data.sender === myName;
-            
-            const div = document.createElement('div');
-            div.className = `msg ${isMe ? 'me' : 'them'}`;
-            div.innerHTML = `<b>${data.sender}</b>${data.text}`;
-            
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById(this.getAttribute('data-section')).classList.add('active');
+                if (window.innerWidth < 992) { bsCollapse.hide(); }
+            });
         });
 
-        // Gửi tin nhắn
-        function send() {
-            const text = msgInput.value.trim();
-            if (text !== "") {
-                channel.publish('message', { text: text, sender: myName });
-                msgInput.value = "";
+        let nhapHangList = JSON.parse(localStorage.getItem('nhapHangList')) || [];
+        let tempXuat = [];
+
+        const handleScanInput = (inputId, infoId, tenId) => {
+            const input = document.getElementById(inputId);
+            input.addEventListener('input', () => {
+                const bc = input.value.trim();
+                const found = nhapHangList.find(i => i.barcode === bc);
+                if (found) {
+                    document.getElementById(infoId).style.display = 'none';
+                    document.getElementById(tenId).value = found.ten;
+                    if (inputId === 'nh-barcode') document.getElementById('gia-nhap-nh').value = found.giaNhap || "";
+                } else if (bc !== "") {
+                    document.getElementById(infoId).style.display = 'block';
+                }
+            });
+        };
+        handleScanInput('nh-barcode', 'nhap-thongtin-sp-nh', 'ten-sp-nh');
+        handleScanInput('xh-barcode', 'nhap-thongtin-sp-xh', 'ten-sp-xh');
+
+        // LOGIC NHẬP HÀNG
+        document.getElementById('form-nhaphang').onsubmit = (e) => {
+            e.preventDefault();
+            const bc = document.getElementById('nh-barcode').value.trim();
+            const sl = parseInt(document.getElementById('nh-soluong').value);
+            const ten = document.getElementById('ten-sp-nh').value;
+            const gia = document.getElementById('gia-nhap-nh').value;
+            const le = document.getElementById('so-luong-le').value;
+            const dv = `${document.getElementById('dv-lon').value}/${document.getElementById('dv-nho').value}`;
+            const editId = document.getElementById('edit-id-nh').value;
+
+            if (editId) {
+                const index = nhapHangList.findIndex(i => i.id == editId);
+                if (index !== -1) {
+                    nhapHangList[index] = { ...nhapHangList[index], barcode: bc, ten, soluong: sl, giaNhap: gia, soLuongLe: le, donvi: dv };
+                }
+            } else {
+                let item = nhapHangList.find(i => i.barcode === bc);
+                if (item) { 
+                    item.soluong += sl; 
+                    item.giaNhap = gia || item.giaNhap; // Cập nhật giá mới nếu có
+                } 
+                else { nhapHangList.push({ id: Date.now(), barcode: bc, ten, soluong: sl, giaNhap: gia, soLuongLe: le, donvi: dv, daXuat: 0 }); }
             }
+            
+            resetFormNH();
+            saveAndRender();
+        };
+
+        function handleRowClickNH(id) {
+            const item = nhapHangList.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('edit-id-nh').value = item.id;
+            document.getElementById('nh-barcode').value = item.barcode;
+            document.getElementById('ten-sp-nh').value = item.ten;
+            document.getElementById('gia-nhap-nh').value = item.giaNhap || "";
+            document.getElementById('nh-soluong').value = item.soluong;
+            document.getElementById('so-luong-le').value = item.soLuongLe || "";
+            const parts = (item.donvi || "").split('/');
+            document.getElementById('dv-lon').value = parts[0] || "";
+            document.getElementById('dv-nho').value = parts[1] || "";
+            
+            document.getElementById('nhap-thongtin-sp-nh').style.display = 'block';
+            document.getElementById('btn-submit-nh').innerText = "Cập nhật sản phẩm";
+            document.getElementById('btn-submit-nh').className = "btn btn-warning btn-lg";
+            document.getElementById('btn-xoa-nh').style.display = "block";
+            document.getElementById('btn-huy-nh').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        msgInput.addEventListener("keypress", (e) => { if (e.key === "Enter") send(); });
+        function resetFormNH() {
+            document.getElementById('form-nhaphang').reset();
+            document.getElementById('edit-id-nh').value = "";
+            document.getElementById('nhap-thongtin-sp-nh').style.display = 'none';
+            document.getElementById('btn-submit-nh').innerText = "Xác nhận nhập kho";
+            document.getElementById('btn-submit-nh').className = "btn btn-primary btn-lg";
+            document.getElementById('btn-xoa-nh').style.display = "none";
+            document.getElementById('btn-huy-nh').style.display = "none";
+        }
+
+        document.getElementById('btn-huy-nh').onclick = resetFormNH;
+        document.getElementById('btn-xoa-nh').onclick = () => {
+            if(confirm("Xóa vĩnh viễn sản phẩm này khỏi kho?")) {
+                const id = document.getElementById('edit-id-nh').value;
+                nhapHangList = nhapHangList.filter(i => i.id != id);
+                saveAndRender();
+                resetFormNH();
+            }
+        };
+
+        // LOGIC XUẤT HÀNG TẠM
+        document.getElementById('form-xuathang').onsubmit = (e) => {
+            e.preventDefault();
+            const bc = document.getElementById('xh-barcode').value.trim();
+            const sl = parseInt(document.getElementById('xh-soluong').value);
+            const ten = document.getElementById('ten-sp-xh').value;
+            const editIdx = document.getElementById('edit-idx-xh').value;
+
+            if(!ten) return alert("Vui lòng nhập tên sản phẩm!");
+
+            if (editIdx !== "") {
+                tempXuat[editIdx] = { barcode: bc, ten, sl };
+            } else {
+                let item = tempXuat.find(i => i.barcode === bc);
+                if (item) item.sl += sl;
+                else tempXuat.push({ barcode: bc, ten, sl });
+            }
+
+            resetFormXH();
+            renderXuatTam();
+        };
+
+        function handleRowClickXH(index) {
+            const item = tempXuat[index];
+            document.getElementById('edit-idx-xh').value = index;
+            document.getElementById('xh-barcode').value = item.barcode;
+            document.getElementById('ten-sp-xh').value = item.ten;
+            document.getElementById('xh-soluong').value = item.sl;
+            
+            document.getElementById('nhap-thongtin-sp-xh').style.display = 'block';
+            document.getElementById('btn-submit-xh').innerText = "Cập nhật dòng này";
+            document.getElementById('btn-xoa-xh').style.display = "block";
+            document.getElementById('btn-huy-xh').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetFormXH() {
+            document.getElementById('form-xuathang').reset();
+            document.getElementById('edit-idx-xh').value = "";
+            document.getElementById('nhap-thongtin-sp-xh').style.display = 'none';
+            document.getElementById('btn-submit-xh').innerText = "Thêm vào phiếu tạm";
+            document.getElementById('btn-xoa-xh').style.display = "none";
+            document.getElementById('btn-huy-xh').style.display = "none";
+        }
+
+        document.getElementById('btn-huy-xh').onclick = resetFormXH;
+        document.getElementById('btn-xoa-xh').onclick = () => {
+            const idx = document.getElementById('edit-idx-xh').value;
+            tempXuat.splice(idx, 1);
+            renderXuatTam();
+            resetFormXH();
+        };
+
+        document.getElementById('btn-luu-xuat').onclick = () => {
+            if (tempXuat.length === 0) return alert("Phiếu xuất đang trống!");
+            tempXuat.forEach(tx => {
+                let spKho = nhapHangList.find(n => n.barcode === tx.barcode);
+                if (spKho) {
+                    spKho.soluong -= tx.sl;
+                    spKho.daXuat = (spKho.daXuat || 0) + tx.sl;
+                }
+            });
+            document.getElementById('phieu-thoigian').innerText = "Thời gian: " + new Date().toLocaleString();
+            document.getElementById('phieu-noi-dung').innerHTML = tempXuat.map(i => `
+                <tr><td>${i.ten}</td><td class="text-center fw-bold">${i.sl}</td></tr>
+            `).join('');
+            document.getElementById('area-phieu-hien-thi').style.display = 'block';
+            saveAndRender();
+            tempXuat = [];
+            renderXuatTam();
+            alert("Đã trừ kho thành công!");
+        };
+
+        function saveAndRender() {
+            localStorage.setItem('nhapHangList', JSON.stringify(nhapHangList));
+            renderNH();
+        }
+
+        function renderNH() {
+            document.querySelector('#table-nhaphang tbody').innerHTML = nhapHangList.map(i => `
+                <tr onclick="handleRowClickNH(${i.id})">
+                    <td>${i.barcode}</td>
+                    <td>${i.ten}</td>
+                    <td class="text-success fw-bold">${i.giaNhap ? Number(i.giaNhap).toLocaleString() : '0'}</td>
+                    <td class="fw-bold text-primary">${i.soluong}</td>
+                    <td>${i.soLuongLe || 0}</td>
+                    <td class="text-danger">${i.daXuat || 0}</td>
+                    <td>${i.donvi || ''}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderXuatTam() {
+            document.getElementById('list-xuat-tam').innerHTML = tempXuat.map((i, idx) => `
+                <tr onclick="handleRowClickXH(${idx})">
+                    <td>${i.ten}</td>
+                    <td class="text-danger fw-bold">${i.sl}</td>
+                </tr>
+            `).join('');
+        }
+
+        const startScanner = (btnId, areaId, inputId) => {
+            document.getElementById(btnId).onclick = () => {
+                const area = document.getElementById(areaId);
+                area.style.display = 'block';
+                const scanner = new Html5Qrcode(areaId);
+                scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+                    document.getElementById(inputId).value = text;
+                    document.getElementById(inputId).dispatchEvent(new Event('input'));
+                    scanner.stop();
+                    area.style.display = 'none';
+                });
+            };
+        };
+        startScanner('btn-mo-camera-nh', 'camera-area-nh', 'nh-barcode');
+        startScanner('btn-mo-camera-xh', 'camera-area-xh', 'xh-barcode');
+
+        document.getElementById('btn-excel-nh').onclick = () => {
+            const ws = XLSX.utils.json_to_sheet(nhapHangList.map(i => ({ 
+                "Barcode": i.barcode, 
+                "Tên SP": i.ten, 
+                "Giá Nhập": i.giaNhap,
+                "Tồn Kho": i.soluong, 
+                "SL Lẻ": i.soLuongLe, 
+                "Tổng Đã Xuất": i.daXuat, 
+                "Đơn vị": i.donvi 
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "TonKho");
+            XLSX.writeFile(wb, "Bao_Cao_Ton_Kho.xlsx");
+        };
+
+        renderNH();
     </script>
 </body>
 </html>
