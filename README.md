@@ -3,1738 +3,1135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stick War Legacy - Mobile</title>
+    <title>Stick War Legacy</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
         
-        html, body {
-            width: 100%;
-            height: 100%;
+        body {
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
-            touch-action: none;
             background: #1a1a2e;
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: Arial, sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
         
-        #gameContainer {
+        #game {
             position: relative;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
         }
         
-        #gameCanvas {
-            flex: 1;
-            width: 100%;
+        canvas {
             display: block;
-        }
-        
-        /* Menu Screens */
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 100;
-            padding: 20px;
         }
         
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
         
-        .menu-title {
-            font-size: clamp(24px, 6vw, 48px);
+        .title {
+            font-size: 24px;
             color: #fff;
             text-shadow: 0 0 20px #4a9eff;
             margin-bottom: 10px;
             text-align: center;
         }
         
-        .menu-subtitle {
-            font-size: clamp(14px, 3vw, 20px);
+        .subtitle {
+            font-size: 13px;
             color: #aaa;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         
-        .menu-btn {
-            padding: 15px 40px;
-            margin: 8px;
-            font-size: clamp(14px, 3vw, 18px);
+        .btn {
+            padding: 12px 35px;
+            margin: 6px;
+            font-size: 15px;
             background: linear-gradient(135deg, #4a9eff, #0066cc);
             border: none;
             border-radius: 25px;
             color: white;
+            min-width: 180px;
             cursor: pointer;
-            min-width: 200px;
-            box-shadow: 0 5px 20px rgba(74, 158, 255, 0.4);
         }
         
-        .menu-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .menu-btn.red {
-            background: linear-gradient(135deg, #ff4a4a, #cc0000);
-        }
-        
-        .menu-btn.green {
-            background: linear-gradient(135deg, #4aff4a, #00cc00);
-        }
+        .btn:active { transform: scale(0.95); }
+        .btn.red { background: linear-gradient(135deg, #ff4a4a, #cc0000); }
+        .btn.green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
         
         /* Control Panels */
-        .control-panel {
+        .panel {
             position: absolute;
-            background: rgba(0,0,0,0.85);
+            bottom: 5px;
+            background: rgba(0,0,0,0.92);
             border-radius: 10px;
-            padding: 8px;
+            padding: 6px;
             z-index: 50;
+            touch-action: manipulation;
         }
         
-        #panelP1 {
+        .panel.left {
             left: 5px;
-            bottom: 5px;
             border: 2px solid #4a9eff;
         }
         
-        #panelP2 {
+        .panel.right {
             right: 5px;
-            bottom: 5px;
             border: 2px solid #ff4a4a;
         }
         
-        .panel-header {
+        .panel-title {
             text-align: center;
             color: white;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            padding: 5px;
+            padding: 4px;
             border-radius: 5px;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         
-        #panelP1 .panel-header { background: #4a9eff; }
-        #panelP2 .panel-header { background: #ff4a4a; }
+        .panel.left .panel-title { background: #4a9eff; }
+        .panel.right .panel-title { background: #ff4a4a; }
         
         .resources {
             display: flex;
             justify-content: space-around;
             color: white;
             font-size: 11px;
-            margin-bottom: 5px;
-            padding: 3px;
+            margin-bottom: 4px;
             background: rgba(255,255,255,0.1);
+            padding: 4px;
             border-radius: 5px;
         }
         
-        .resource {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-        
-        .unit-grid {
+        .units {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-            margin-bottom: 5px;
+            gap: 3px;
+            margin-bottom: 4px;
         }
         
         .unit-btn {
-            width: 50px;
-            height: 45px;
+            width: 48px;
+            height: 42px;
             border: 2px solid #555;
             border-radius: 8px;
-            background: #333;
+            background: #2a2a2a;
             color: white;
-            font-size: 9px;
+            font-size: 8px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            touch-action: manipulation;
         }
         
         .unit-btn:active {
-            background: #555;
-            transform: scale(0.95);
+            background: #4a4a4a;
+            transform: scale(0.92);
         }
         
-        .unit-btn .icon {
-            font-size: 16px;
-        }
+        .unit-btn .icon { font-size: 15px; }
+        .unit-btn .cost { color: gold; font-size: 9px; margin-top: 1px; }
         
-        .unit-btn .cost {
-            color: gold;
-            font-size: 8px;
-        }
-        
-        .command-btns {
+        .commands {
             display: flex;
-            gap: 4px;
+            gap: 3px;
         }
         
-        .cmd-btn {
+        .cmd {
             flex: 1;
-            padding: 8px 5px;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .cmd-btn.attack { background: #dc3545; }
-        .cmd-btn.defend { background: #28a745; }
-        .cmd-btn.garrison { background: #ffc107; color: black; }
-        
-        .cmd-btn.active {
-            box-shadow: 0 0 10px white;
-            transform: scale(1.05);
-        }
-        
-        /* Camera Controls */
-        .camera-controls {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 40;
-        }
-        
-        #camP1 { left: 5px; }
-        #camP2 { right: 5px; }
-        
-        .cam-btn {
-            width: 40px;
-            height: 40px;
-            border: none;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        
-        .cam-btn:active {
-            background: rgba(255,255,255,0.6);
-        }
-        
-        /* Top HUD */
-        .top-hud {
-            position: absolute;
-            top: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 40;
-        }
-        
-        .statue-hp {
-            text-align: center;
-            color: white;
-            font-size: 12px;
-        }
-        
-        .hp-bar {
-            width: 80px;
-            height: 12px;
-            background: #333;
+            padding: 8px 4px;
+            border: 2px solid transparent;
             border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #555;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            touch-action: manipulation;
         }
         
-        .hp-fill {
-            height: 100%;
-            transition: width 0.3s;
-        }
+        .cmd.atk { background: #c0392b; }
+        .cmd.def { background: #27ae60; }
+        .cmd.gar { background: #f39c12; }
+        .cmd.active { border-color: white; box-shadow: 0 0 8px white; }
         
-        #hpP1 .hp-fill { background: #4a9eff; }
-        #hpP2 .hp-fill { background: #ff4a4a; }
-        
-        /* Minimap */
-        .minimap {
-            position: absolute;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150px;
-            height: 30px;
-            background: rgba(0,0,0,0.7);
-            border: 1px solid #555;
-            border-radius: 5px;
-            z-index: 40;
-        }
-        
-        #minimapCanvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 5px;
-        }
-        
-        /* Pause Button */
+        /* Pause */
         #pauseBtn {
             position: absolute;
             top: 5px;
             right: 5px;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: none;
             border-radius: 50%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             color: white;
-            font-size: 20px;
+            font-size: 16px;
             z-index: 60;
             cursor: pointer;
         }
         
-        /* Joystick */
-        .joystick-container {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            z-index: 45;
+        .info-box {
+            background: rgba(0,0,0,0.92);
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 55vh;
+            overflow-y: auto;
+            color: white;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 15px;
         }
         
-        #joystickP1 {
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
+        .info-box h3 {
+            color: #4a9eff;
+            margin: 10px 0 5px;
+            font-size: 13px;
         }
         
-        #joystickP2 {
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        .joystick-base {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            border: 3px solid rgba(255,255,255,0.4);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .joystick-stick {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.6);
-            position: absolute;
-        }
-        
-        /* Game Over */
-        #gameOverScreen h1 {
-            font-size: clamp(28px, 8vw, 64px);
+        #endScreen .title {
+            font-size: 28px;
             margin-bottom: 20px;
         }
         
-        #gameOverScreen.p1-win h1 { color: #4a9eff; }
-        #gameOverScreen.p2-win h1 { color: #ff4a4a; }
-        
-        /* Instructions */
-        .instructions-box {
-            background: rgba(0,0,0,0.8);
-            padding: 20px;
-            border-radius: 15px;
-            max-width: 90%;
-            max-height: 70vh;
-            overflow-y: auto;
-            color: white;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        
-        .instructions-box h3 {
-            color: #4a9eff;
-            margin: 15px 0 10px;
-        }
-        
-        /* Landscape adjustments */
-        @media (orientation: landscape) {
-            .control-panel {
-                max-width: 180px;
-            }
-            
-            .unit-btn {
-                width: 45px;
-                height: 40px;
-            }
-        }
-        
-        /* Portrait adjustments */
-        @media (orientation: portrait) {
-            .control-panel {
-                width: calc(50% - 10px);
-            }
-            
-            #panelP1 { left: 5px; }
-            #panelP2 { right: 5px; }
-            
-            .unit-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
-            .unit-btn {
-                width: 100%;
-                height: 40px;
-            }
-        }
-        
-        /* Command indicator */
-        .command-indicator {
-            position: absolute;
-            top: 85px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px black;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 55;
-        }
-        
-        .command-indicator.show {
-            opacity: 1;
-        }
-        
-        /* Tutorial overlay */
-        .tutorial-highlight {
-            position: absolute;
-            border: 3px solid #FFD700;
-            border-radius: 10px;
-            animation: pulse 1s infinite;
-            pointer-events: none;
-            z-index: 100;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        @media (max-width: 400px) {
+            .unit-btn { width: 42px; height: 38px; }
+            .unit-btn .icon { font-size: 13px; }
+            .panel { padding: 5px; }
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas>
+    <div id="game">
+        <canvas id="canvas"></canvas>
         
-        <!-- Menu Screen -->
+        <!-- MENU -->
         <div id="menuScreen" class="screen">
-            <h1 class="menu-title">⚔️ STICK WAR LEGACY ⚔️</h1>
-            <p class="menu-subtitle">Mobile 2 Player Battle</p>
-            <button class="menu-btn" ontouchend="showModeScreen()" onclick="showModeScreen()">🎮 CHƠI NGAY</button>
-            <button class="menu-btn green" ontouchend="showInstructions()" onclick="showInstructions()">📖 HƯỚNG DẪN</button>
+            <div class="title">⚔️ STICK WAR LEGACY ⚔️</div>
+            <div class="subtitle">2 Người Chơi Cùng Màn Hình</div>
+            <button class="btn" id="btnPlay">🎮 CHƠI NGAY</button>
+            <button class="btn green" id="btnHelp">📖 HƯỚNG DẪN</button>
         </div>
         
-        <!-- Instructions Screen -->
-        <div id="instructionsScreen" class="screen hidden">
-            <div class="instructions-box">
-                <h2 style="text-align:center; color:#FFD700;">📖 HƯỚNG DẪN CHƠI</h2>
-                
+        <!-- HELP -->
+        <div id="helpScreen" class="screen hidden">
+            <div class="info-box">
+                <h2 style="text-align:center;color:#FFD700;">📖 HƯỚNG DẪN</h2>
                 <h3>🎯 Mục tiêu:</h3>
-                <p>Phá hủy tượng đài của đối thủ để giành chiến thắng!</p>
-                
-                <h3>💰 Kinh tế:</h3>
-                <p>• Tạo Miner (⛏️) để khai thác vàng từ mỏ<br>
-                • Dùng vàng để mua quân đội</p>
-                
-                <h3>⚔️ Các loại quân:</h3>
-                <p>
-                • ⛏️ <b>Miner</b> (150💰): Khai thác vàng<br>
-                • ⚔️ <b>Sword</b> (150💰): Kiếm sĩ nhanh<br>
-                • 🏹 <b>Archer</b> (300💰): Bắn xa<br>
-                • 🛡️ <b>Spear</b> (500💰): Tank có khiên<br>
-                • 🔮 <b>Mage</b> (800💰): Phép thuật diện<br>
-                • 👹 <b>Giant</b> (1500💰): Khổng lồ mạnh
-                </p>
-                
+                <p>Phá hủy tượng đài đối thủ!</p>
+                <h3>⛏️ Đào vàng:</h3>
+                <p>Miner đi mỏ → Đào → Về nhà → Nhận +50💰</p>
+                <h3>⚔️ Quân đội:</h3>
+                <p>⛏️Miner 100 | ⚔️Sword 150 | 🏹Archer 300<br>
+                🛡️Spear 500 | 🔮Mage 800 | 👹Giant 1500</p>
                 <h3>🎮 Điều khiển:</h3>
-                <p>
-                • <b>Player 1:</b> Bảng điều khiển bên TRÁI<br>
-                • <b>Player 2:</b> Bảng điều khiển bên PHẢI<br>
-                • Nhấn nút quân để tạo<br>
-                • Chọn lệnh: Tấn công/Phòng thủ/Đồn trú<br>
-                • Dùng Joystick để di chuyển camera
-                </p>
-                
-                <h3>💡 Mẹo:</h3>
-                <p>
-                • Cân bằng kinh tế và quân đội<br>
-                • Spearton làm tank ở tiền tuyến<br>
-                • Magikill hiệu quả với đám đông<br>
-                • Giant có thể đánh bật kẻ địch
-                </p>
+                <p>• P1 (Xanh): Bảng TRÁI<br>
+                • P2 (Đỏ): Bảng PHẢI<br>
+                • Cả 2 người có thể bấm cùng lúc!</p>
             </div>
-            <button class="menu-btn red" ontouchend="hideInstructions()" onclick="hideInstructions()">⬅️ QUAY LẠI</button>
+            <button class="btn red" id="btnBack">⬅️ QUAY LẠI</button>
         </div>
         
-        <!-- Mode Screen -->
+        <!-- MODE -->
         <div id="modeScreen" class="screen hidden">
-            <h1 class="menu-title">🎮 CHỌN CHẾ ĐỘ</h1>
-            <button class="menu-btn" ontouchend="startGame('pvp')" onclick="startGame('pvp')">👥 2 NGƯỜI CHƠI</button>
-            <button class="menu-btn" ontouchend="startGame('pve')" onclick="startGame('pve')">🤖 ĐẤU VỚI MÁY</button>
-            <button class="menu-btn red" ontouchend="backToMenu()" onclick="backToMenu()">⬅️ QUAY LẠI</button>
+            <div class="title">🎮 CHỌN CHẾ ĐỘ</div>
+            <button class="btn" id="btnPvP">👥 2 NGƯỜI CHƠI</button>
+            <button class="btn" id="btnPvE">🤖 ĐẤU VỚI MÁY</button>
+            <button class="btn red" id="btnBack2">⬅️ QUAY LẠI</button>
         </div>
         
-        <!-- Game Over Screen -->
-        <div id="gameOverScreen" class="screen hidden">
-            <h1 id="winnerText">PLAYER 1 THẮNG!</h1>
-            <button class="menu-btn" ontouchend="restartGame()" onclick="restartGame()">🔄 CHƠI LẠI</button>
-            <button class="menu-btn red" ontouchend="backToMenu()" onclick="backToMenu()">🏠 VỀ MENU</button>
-        </div>
-        
-        <!-- Pause Screen -->
+        <!-- PAUSE -->
         <div id="pauseScreen" class="screen hidden">
-            <h1 class="menu-title">⏸️ TẠM DỪNG</h1>
-            <button class="menu-btn" ontouchend="resumeGame()" onclick="resumeGame()">▶️ TIẾP TỤC</button>
-            <button class="menu-btn red" ontouchend="backToMenu()" onclick="backToMenu()">🏠 VỀ MENU</button>
+            <div class="title">⏸️ TẠM DỪNG</div>
+            <button class="btn" id="btnResume">▶️ TIẾP TỤC</button>
+            <button class="btn red" id="btnQuit">🏠 VỀ MENU</button>
         </div>
         
-        <!-- Pause Button -->
-        <button id="pauseBtn" class="hidden" ontouchend="pauseGame()" onclick="pauseGame()">⏸️</button>
-        
-        <!-- Top HUD -->
-        <div class="top-hud hidden" id="topHud">
-            <div class="statue-hp" id="hpP1">
-                <div>P1 🏰</div>
-                <div class="hp-bar">
-                    <div class="hp-fill" id="hpFillP1" style="width: 100%"></div>
-                </div>
-                <div id="hpTextP1">1000</div>
-            </div>
-            <div class="statue-hp" id="hpP2">
-                <div>🏰 P2</div>
-                <div class="hp-bar">
-                    <div class="hp-fill" id="hpFillP2" style="width: 100%"></div>
-                </div>
-                <div id="hpTextP2">1000</div>
-            </div>
+        <!-- GAME OVER -->
+        <div id="endScreen" class="screen hidden">
+            <div class="title" id="winText">🎉 PLAYER 1 THẮNG!</div>
+            <button class="btn" id="btnRestart">🔄 CHƠI LẠI</button>
+            <button class="btn red" id="btnMenu">🏠 VỀ MENU</button>
         </div>
         
-        <!-- Minimap -->
-        <div class="minimap hidden" id="minimap">
-            <canvas id="minimapCanvas"></canvas>
-        </div>
+        <!-- GAME UI -->
+        <button id="pauseBtn" class="hidden">⏸️</button>
         
-        <!-- Command Indicator -->
-        <div class="command-indicator" id="commandIndicator"></div>
-        
-        <!-- Player 1 Controls -->
-        <div id="panelP1" class="control-panel hidden">
-            <div class="panel-header">⚔️ PLAYER 1</div>
+        <div class="panel left hidden" id="panel1">
+            <div class="panel-title">🔵 PLAYER 1</div>
             <div class="resources">
-                <div class="resource">💰 <span id="goldP1">200</span></div>
-                <div class="resource">👥 <span id="popP1">0</span>/50</div>
+                <span>💰<span id="gold1">200</span></span>
+                <span>👥<span id="pop1">0</span>/50</span>
             </div>
-            <div class="unit-grid">
-                <button class="unit-btn" ontouchstart="spawnUnit(1,'miner')" onclick="spawnUnit(1,'miner')">
-                    <span class="icon">⛏️</span>
-                    <span class="cost">150</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(1,'swordwrath')" onclick="spawnUnit(1,'swordwrath')">
-                    <span class="icon">⚔️</span>
-                    <span class="cost">150</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(1,'archidon')" onclick="spawnUnit(1,'archidon')">
-                    <span class="icon">🏹</span>
-                    <span class="cost">300</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(1,'spearton')" onclick="spawnUnit(1,'spearton')">
-                    <span class="icon">🛡️</span>
-                    <span class="cost">500</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(1,'magikill')" onclick="spawnUnit(1,'magikill')">
-                    <span class="icon">🔮</span>
-                    <span class="cost">800</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(1,'giant')" onclick="spawnUnit(1,'giant')">
-                    <span class="icon">👹</span>
-                    <span class="cost">1500</span>
-                </button>
-            </div>
-            <div class="command-btns">
-                <button class="cmd-btn attack" id="cmdP1Attack" ontouchstart="setCommand(1,'attack')" onclick="setCommand(1,'attack')">⚔️</button>
-                <button class="cmd-btn defend active" id="cmdP1Defend" ontouchstart="setCommand(1,'defend')" onclick="setCommand(1,'defend')">🛡️</button>
-                <button class="cmd-btn garrison" id="cmdP1Garrison" ontouchstart="setCommand(1,'garrison')" onclick="setCommand(1,'garrison')">🏠</button>
-            </div>
+            <div class="units" id="units1"></div>
+            <div class="commands" id="cmds1"></div>
         </div>
         
-        <!-- Player 2 Controls -->
-        <div id="panelP2" class="control-panel hidden">
-            <div class="panel-header">⚔️ PLAYER 2</div>
+        <div class="panel right hidden" id="panel2">
+            <div class="panel-title">PLAYER 2 🔴</div>
             <div class="resources">
-                <div class="resource">💰 <span id="goldP2">200</span></div>
-                <div class="resource">👥 <span id="popP2">0</span>/50</div>
+                <span>💰<span id="gold2">200</span></span>
+                <span>👥<span id="pop2">0</span>/50</span>
             </div>
-            <div class="unit-grid">
-                <button class="unit-btn" ontouchstart="spawnUnit(2,'miner')" onclick="spawnUnit(2,'miner')">
-                    <span class="icon">⛏️</span>
-                    <span class="cost">150</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(2,'swordwrath')" onclick="spawnUnit(2,'swordwrath')">
-                    <span class="icon">⚔️</span>
-                    <span class="cost">150</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(2,'archidon')" onclick="spawnUnit(2,'archidon')">
-                    <span class="icon">🏹</span>
-                    <span class="cost">300</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(2,'spearton')" onclick="spawnUnit(2,'spearton')">
-                    <span class="icon">🛡️</span>
-                    <span class="cost">500</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(2,'magikill')" onclick="spawnUnit(2,'magikill')">
-                    <span class="icon">🔮</span>
-                    <span class="cost">800</span>
-                </button>
-                <button class="unit-btn" ontouchstart="spawnUnit(2,'giant')" onclick="spawnUnit(2,'giant')">
-                    <span class="icon">👹</span>
-                    <span class="cost">1500</span>
-                </button>
-            </div>
-            <div class="command-btns">
-                <button class="cmd-btn attack" id="cmdP2Attack" ontouchstart="setCommand(2,'attack')" onclick="setCommand(2,'attack')">⚔️</button>
-                <button class="cmd-btn defend active" id="cmdP2Defend" ontouchstart="setCommand(2,'defend')" onclick="setCommand(2,'defend')">🛡️</button>
-                <button class="cmd-btn garrison" id="cmdP2Garrison" ontouchstart="setCommand(2,'garrison')" onclick="setCommand(2,'garrison')">🏠</button>
-            </div>
-        </div>
-        
-        <!-- Joystick P1 -->
-        <div id="joystickP1" class="joystick-container hidden">
-            <div class="joystick-base" id="joystickBaseP1">
-                <div class="joystick-stick" id="joystickStickP1"></div>
-            </div>
-        </div>
-        
-        <!-- Joystick P2 -->
-        <div id="joystickP2" class="joystick-container hidden">
-            <div class="joystick-base" id="joystickBaseP2">
-                <div class="joystick-stick" id="joystickStickP2"></div>
-            </div>
+            <div class="units" id="units2"></div>
+            <div class="commands" id="cmds2"></div>
         </div>
     </div>
 
-    <script>
-        // ==================== CONFIGURATION ====================
-        const CONFIG = {
-            WORLD_WIDTH: 3000,
-            GROUND_Y: 0.7,
-            MAX_POP: 50,
-            START_GOLD: 200,
-            GOLD_PER_MINE: 10,
-            MINE_INTERVAL: 1200,
-            MINE_POSITIONS: [0.15, 0.35, 0.65, 0.85]
-        };
-        
-        const UNIT_TYPES = {
-            miner: {
-                name: 'Miner', cost: 150, hp: 50, damage: 5,
-                speed: 2.5, range: 30, attackSpeed: 1000, pop: 1,
-                color: '#FFD700', width: 15, height: 35, canMine: true
-            },
-            swordwrath: {
-                name: 'Swordwrath', cost: 150, hp: 80, damage: 18,
-                speed: 4, range: 35, attackSpeed: 700, pop: 1,
-                color: '#888', width: 15, height: 40
-            },
-            archidon: {
-                name: 'Archidon', cost: 300, hp: 60, damage: 25,
-                speed: 3, range: 200, attackSpeed: 1400, pop: 2,
-                color: '#8B4513', width: 15, height: 40, isRanged: true
-            },
-            spearton: {
-                name: 'Spearton', cost: 500, hp: 250, damage: 30,
-                speed: 2.5, range: 45, attackSpeed: 1100, pop: 3,
-                color: '#C0C0C0', width: 20, height: 50, hasShield: true, shieldBlock: 0.5
-            },
-            magikill: {
-                name: 'Magikill', cost: 800, hp: 120, damage: 50,
-                speed: 2, range: 180, attackSpeed: 2200, pop: 4,
-                color: '#9400D3', width: 18, height: 45, isRanged: true, isMagic: true, splashRadius: 70
-            },
-            giant: {
-                name: 'Giant', cost: 1500, hp: 700, damage: 80,
-                speed: 1.5, range: 55, attackSpeed: 1800, pop: 7,
-                color: '#654321', width: 40, height: 80, knockback: true
-            }
-        };
-        
-        // ==================== GAME STATE ====================
-        let canvas, ctx, minimapCanvas, minimapCtx;
-        let gameRunning = false;
-        let gamePaused = false;
-        let gameMode = 'pvp';
-        let lastTime = 0;
-        
-        let camera = { x: 0, targetX: 0 };
-        
-        let players = {};
-        let projectiles = [];
-        let effects = [];
-        let mines = [];
-        
-        // Joystick state
-        let joysticks = {
-            1: { active: false, dx: 0, dy: 0, touchId: null },
-            2: { active: false, dx: 0, dy: 0, touchId: null }
-        };
-        
-        // ==================== INITIALIZATION ====================
-        function init() {
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d');
-            minimapCanvas = document.getElementById('minimapCanvas');
-            minimapCtx = minimapCanvas.getContext('2d');
-            
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
-            
-            setupTouchControls();
-            setupMinimapTouch();
-            
-            // Prevent default touch behaviors
-            document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-        }
-        
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            minimapCanvas.width = 150;
-            minimapCanvas.height = 30;
-        }
-        
-        function setupTouchControls() {
-            // Joystick P1
-            setupJoystick(1);
-            setupJoystick(2);
-            
-            // Canvas touch for camera pan
-            canvas.addEventListener('touchstart', handleCanvasTouch);
-            canvas.addEventListener('touchmove', handleCanvasTouchMove);
-            canvas.addEventListener('touchend', handleCanvasTouchEnd);
-        }
-        
-        function setupJoystick(player) {
-            const container = document.getElementById(`joystickP${player}`);
-            const base = document.getElementById(`joystickBaseP${player}`);
-            const stick = document.getElementById(`joystickStickP${player}`);
-            
-            base.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+<script>
+// ============ CONFIG ============
+const WORLD_W = 1400;
+const GROUND = 0.72;
+const MAX_HP = 1000;
+
+const UNITS_DATA = [
+    { id: 'miner', icon: '⛏️', cost: 100, hp: 60, dmg: 8, spd: 1.8, range: 25, atkSpd: 1000, pop: 1, isMiner: true, h: 28, color: '#FFD700' },
+    { id: 'sword', icon: '⚔️', cost: 150, hp: 100, dmg: 22, spd: 2.8, range: 28, atkSpd: 550, pop: 1, h: 32, color: '#888' },
+    { id: 'archer', icon: '🏹', cost: 300, hp: 70, dmg: 30, spd: 2.2, range: 150, atkSpd: 1200, pop: 2, ranged: true, h: 32, color: '#8B4513' },
+    { id: 'spear', icon: '🛡️', cost: 500, hp: 300, dmg: 38, spd: 1.8, range: 35, atkSpd: 900, pop: 3, shield: 0.45, h: 40, color: '#C0C0C0' },
+    { id: 'mage', icon: '🔮', cost: 800, hp: 140, dmg: 60, spd: 1.5, range: 130, atkSpd: 1800, pop: 4, ranged: true, magic: true, splash: 50, h: 35, color: '#9400D3' },
+    { id: 'giant', icon: '👹', cost: 1500, hp: 900, dmg: 100, spd: 1.0, range: 45, atkSpd: 1400, pop: 7, kb: 25, h: 60, color: '#654321' }
+];
+
+// ============ GAME STATE ============
+let canvas, ctx;
+let running = false, paused = false, mode = 'pvp';
+let lastTime = 0;
+let scale = 1;
+
+let players, projectiles, effects, mines;
+
+// ============ INIT ============
+function init() {
+    canvas = document.getElementById('canvas');
+    ctx = canvas.getContext('2d');
+    
+    resize();
+    window.addEventListener('resize', resize);
+    
+    setupMenuButtons();
+    createUnitButtons();
+    createCommandButtons();
+}
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    scale = canvas.width / WORLD_W;
+    if (scale > 1) scale = 1;
+}
+
+function setupMenuButtons() {
+    addClick('btnPlay', () => { hide('menuScreen'); show('modeScreen'); });
+    addClick('btnHelp', () => { hide('menuScreen'); show('helpScreen'); });
+    addClick('btnBack', () => { hide('helpScreen'); show('menuScreen'); });
+    addClick('btnBack2', () => { hide('modeScreen'); show('menuScreen'); });
+    addClick('btnPvP', () => startGame('pvp'));
+    addClick('btnPvE', () => startGame('pve'));
+    addClick('btnResume', resumeGame);
+    addClick('btnQuit', quitGame);
+    addClick('btnRestart', () => startGame(mode));
+    addClick('btnMenu', quitGame);
+    addClick('pauseBtn', pauseGame);
+}
+
+function addClick(id, fn) {
+    const el = document.getElementById(id);
+    el.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        fn();
+    });
+}
+
+function createUnitButtons() {
+    for (let p of [1, 2]) {
+        const container = document.getElementById('units' + p);
+        container.innerHTML = '';
+        for (let u of UNITS_DATA) {
+            const btn = document.createElement('div');
+            btn.className = 'unit-btn';
+            btn.innerHTML = `<span class="icon">${u.icon}</span><span class="cost">${u.cost}</span>`;
+            btn.addEventListener('pointerdown', (e) => {
                 e.stopPropagation();
-                const touch = e.touches[0];
-                joysticks[player].active = true;
-                joysticks[player].touchId = touch.identifier;
-                updateJoystickPosition(player, touch, base, stick);
-            });
-            
-            base.addEventListener('touchmove', (e) => {
                 e.preventDefault();
+                spawnUnit(p, u.id);
+            });
+            container.appendChild(btn);
+        }
+    }
+}
+
+function createCommandButtons() {
+    const cmds = [
+        { id: 'attack', icon: '⚔️', cls: 'atk' },
+        { id: 'defend', icon: '🛡️', cls: 'def' },
+        { id: 'garrison', icon: '🏠', cls: 'gar' }
+    ];
+    
+    for (let p of [1, 2]) {
+        const container = document.getElementById('cmds' + p);
+        container.innerHTML = '';
+        for (let c of cmds) {
+            const btn = document.createElement('div');
+            btn.className = 'cmd ' + c.cls;
+            btn.id = `cmd${p}_${c.id}`;
+            btn.textContent = c.icon;
+            btn.addEventListener('pointerdown', (e) => {
                 e.stopPropagation();
-                for (let touch of e.touches) {
-                    if (touch.identifier === joysticks[player].touchId) {
-                        updateJoystickPosition(player, touch, base, stick);
-                    }
-                }
-            });
-            
-            base.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                joysticks[player].active = false;
-                joysticks[player].dx = 0;
-                joysticks[player].dy = 0;
-                stick.style.transform = 'translate(-50%, -50%)';
-                stick.style.left = '50%';
-                stick.style.top = '50%';
+                setCommand(p, c.id);
             });
+            container.appendChild(btn);
         }
+    }
+}
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+// ============ GAME CONTROL ============
+function startGame(m) {
+    mode = m;
+    resetGame();
+    
+    hide('modeScreen');
+    hide('endScreen');
+    show('pauseBtn');
+    show('panel1');
+    show('panel2');
+    
+    if (mode === 'pve') hide('panel2');
+    
+    running = true;
+    paused = false;
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+}
+
+function resetGame() {
+    players = {
+        1: { 
+            gold: 200, pop: 0, units: [], cmd: 'defend', 
+            statue: MAX_HP, maxStatue: MAX_HP,
+            spawnX: 70, color: '#4a9eff', dir: 1 
+        },
+        2: { 
+            gold: 200, pop: 0, units: [], cmd: 'defend', 
+            statue: MAX_HP, maxStatue: MAX_HP,
+            spawnX: WORLD_W - 70, color: '#ff4a4a', dir: -1 
+        }
+    };
+    
+    mines = [
+        { x: 250, owner: 1 },
+        { x: 400, owner: 1 },
+        { x: WORLD_W - 250, owner: 2 },
+        { x: WORLD_W - 400, owner: 2 }
+    ];
+    
+    projectiles = [];
+    effects = [];
+    
+    updateCmdUI(1, 'defend');
+    updateCmdUI(2, 'defend');
+}
+
+function pauseGame() {
+    if (!running) return;
+    paused = true;
+    show('pauseScreen');
+}
+
+function resumeGame() {
+    paused = false;
+    hide('pauseScreen');
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+}
+
+function quitGame() {
+    running = false;
+    paused = false;
+    hide('pauseScreen');
+    hide('endScreen');
+    hide('pauseBtn');
+    hide('panel1');
+    hide('panel2');
+    show('menuScreen');
+}
+
+function endGame(winner) {
+    running = false;
+    const txt = document.getElementById('winText');
+    txt.textContent = `🎉 PLAYER ${winner} THẮNG!`;
+    txt.style.color = players[winner].color;
+    show('endScreen');
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+}
+
+// ============ SPAWN & COMMANDS ============
+function spawnUnit(pid, uid) {
+    if (!running || paused) return;
+    
+    const data = UNITS_DATA.find(u => u.id === uid);
+    const p = players[pid];
+    
+    if (p.gold >= data.cost && p.pop + data.pop <= 50) {
+        p.gold -= data.cost;
+        p.pop += data.pop;
         
-        function updateJoystickPosition(player, touch, base, stick) {
-            const rect = base.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
+        const groundY = canvas.height * GROUND;
+        const unit = {
+            ...data,
+            player: pid,
+            x: p.spawnX + (Math.random() - 0.5) * 30,
+            y: groundY,
+            hp: data.hp,
+            maxHp: data.hp,
+            state: 'idle',
+            facing: pid === 1,
+            lastAtk: 0,
+            anim: Math.random() * 10,
+            carrying: 0,
+            mineTime: 0,
+            target: null
+        };
+        
+        p.units.push(unit);
+        
+        effects.push({
+            type: 'spawn', x: unit.x, y: groundY - data.h/2,
+            r: 8, alpha: 1, color: p.color
+        });
+        
+        if (navigator.vibrate) navigator.vibrate(20);
+    }
+}
+
+function setCommand(pid, cmd) {
+    if (!running || paused) return;
+    players[pid].cmd = cmd;
+    updateCmdUI(pid, cmd);
+    if (navigator.vibrate) navigator.vibrate(15);
+}
+
+function updateCmdUI(pid, cmd) {
+    ['attack', 'defend', 'garrison'].forEach(c => {
+        const el = document.getElementById(`cmd${pid}_${c}`);
+        if (el) el.classList.toggle('active', c === cmd);
+    });
+}
+
+// ============ GAME LOOP ============
+function loop(time) {
+    if (!running || paused) return;
+    
+    const dt = Math.min((time - lastTime) / 1000, 0.05);
+    lastTime = time;
+    
+    update(dt);
+    render();
+    
+    requestAnimationFrame(loop);
+}
+
+function update(dt) {
+    const groundY = canvas.height * GROUND;
+    
+    for (let pid of [1, 2]) {
+        const p = players[pid];
+        const enemy = players[pid === 1 ? 2 : 1];
+        
+        for (let u of p.units) {
+            u.anim += dt * 7;
             
-            let dx = touch.clientX - centerX;
-            let dy = touch.clientY - centerY;
-            
-            const maxDist = rect.width / 2 - 20;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            
-            if (dist > maxDist) {
-                dx = (dx / dist) * maxDist;
-                dy = (dy / dist) * maxDist;
-            }
-            
-            stick.style.left = `calc(50% + ${dx}px)`;
-            stick.style.top = `calc(50% + ${dy}px)`;
-            
-            joysticks[player].dx = dx / maxDist;
-            joysticks[player].dy = dy / maxDist;
-        }
-        
-        let canvasTouchStart = null;
-        
-        function handleCanvasTouch(e) {
-            if (e.target !== canvas) return;
-            canvasTouchStart = { x: e.touches[0].clientX, camX: camera.x };
-        }
-        
-        function handleCanvasTouchMove(e) {
-            if (!canvasTouchStart || e.target !== canvas) return;
-            const dx = canvasTouchStart.x - e.touches[0].clientX;
-            camera.targetX = Math.max(0, Math.min(CONFIG.WORLD_WIDTH - canvas.width, canvasTouchStart.camX + dx));
-        }
-        
-        function handleCanvasTouchEnd() {
-            canvasTouchStart = null;
-        }
-        
-        function setupMinimapTouch() {
-            const minimap = document.getElementById('minimap');
-            minimap.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const rect = minimap.getBoundingClientRect();
-                const x = (e.touches[0].clientX - rect.left) / rect.width;
-                camera.targetX = x * CONFIG.WORLD_WIDTH - canvas.width / 2;
-                camera.targetX = Math.max(0, Math.min(CONFIG.WORLD_WIDTH - canvas.width, camera.targetX));
-            });
-        }
-        
-        // ==================== MENU FUNCTIONS ====================
-        function showModeScreen() {
-            document.getElementById('menuScreen').classList.add('hidden');
-            document.getElementById('modeScreen').classList.remove('hidden');
-        }
-        
-        function showInstructions() {
-            document.getElementById('menuScreen').classList.add('hidden');
-            document.getElementById('instructionsScreen').classList.remove('hidden');
-        }
-        
-        function hideInstructions() {
-            document.getElementById('instructionsScreen').classList.add('hidden');
-            document.getElementById('menuScreen').classList.remove('hidden');
-        }
-        
-        function backToMenu() {
-            gameRunning = false;
-            gamePaused = false;
-            
-            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            document.getElementById('menuScreen').classList.remove('hidden');
-            
-            hideGameUI();
-        }
-        
-        function hideGameUI() {
-            document.getElementById('panelP1').classList.add('hidden');
-            document.getElementById('panelP2').classList.add('hidden');
-            document.getElementById('joystickP1').classList.add('hidden');
-            document.getElementById('joystickP2').classList.add('hidden');
-            document.getElementById('topHud').classList.add('hidden');
-            document.getElementById('minimap').classList.add('hidden');
-            document.getElementById('pauseBtn').classList.add('hidden');
-        }
-        
-        function showGameUI() {
-            document.getElementById('panelP1').classList.remove('hidden');
-            document.getElementById('panelP2').classList.remove('hidden');
-            document.getElementById('joystickP1').classList.remove('hidden');
-            document.getElementById('joystickP2').classList.remove('hidden');
-            document.getElementById('topHud').classList.remove('hidden');
-            document.getElementById('minimap').classList.remove('hidden');
-            document.getElementById('pauseBtn').classList.remove('hidden');
-            
-            if (gameMode === 'pve') {
-                document.getElementById('panelP2').classList.add('hidden');
-                document.getElementById('joystickP2').classList.add('hidden');
-            }
-        }
-        
-        function startGame(mode) {
-            gameMode = mode;
-            resetGame();
-            
-            document.getElementById('modeScreen').classList.add('hidden');
-            showGameUI();
-            
-            gameRunning = true;
-            gamePaused = false;
-            lastTime = performance.now();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        function resetGame() {
-            players = {
-                1: {
-                    gold: CONFIG.START_GOLD,
-                    pop: 0,
-                    maxPop: CONFIG.MAX_POP,
-                    units: [],
-                    command: 'defend',
-                    statue: { hp: 1000, maxHp: 1000 },
-                    spawnX: 120,
-                    color: '#4a9eff',
-                    direction: 1
-                },
-                2: {
-                    gold: CONFIG.START_GOLD,
-                    pop: 0,
-                    maxPop: CONFIG.MAX_POP,
-                    units: [],
-                    command: 'defend',
-                    statue: { hp: 1000, maxHp: 1000 },
-                    spawnX: CONFIG.WORLD_WIDTH - 120,
-                    color: '#ff4a4a',
-                    direction: -1
-                }
-            };
-            
-            projectiles = [];
-            effects = [];
-            camera.x = CONFIG.WORLD_WIDTH / 2 - canvas.width / 2;
-            camera.targetX = camera.x;
-            
-            mines = CONFIG.MINE_POSITIONS.map(pos => ({
-                x: CONFIG.WORLD_WIDTH * pos,
-                gold: Infinity
-            }));
-            
-            updateCommandButtons(1, 'defend');
-            updateCommandButtons(2, 'defend');
-        }
-        
-        function restartGame() {
-            document.getElementById('gameOverScreen').classList.add('hidden');
-            startGame(gameMode);
-        }
-        
-        function pauseGame() {
-            if (!gameRunning) return;
-            gamePaused = true;
-            document.getElementById('pauseScreen').classList.remove('hidden');
-        }
-        
-        function resumeGame() {
-            gamePaused = false;
-            document.getElementById('pauseScreen').classList.add('hidden');
-            lastTime = performance.now();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        // ==================== GAME FUNCTIONS ====================
-        function spawnUnit(player, type) {
-            if (!gameRunning || gamePaused) return;
-            
-            const unitType = UNIT_TYPES[type];
-            const p = players[player];
-            
-            if (p.gold >= unitType.cost && p.pop + unitType.pop <= p.maxPop) {
-                p.gold -= unitType.cost;
-                p.pop += unitType.pop;
-                
-                const groundY = canvas.height * CONFIG.GROUND_Y;
-                const unit = {
-                    id: Date.now() + Math.random(),
-                    type: type,
-                    player: player,
-                    x: p.spawnX + (Math.random() - 0.5) * 30,
-                    y: groundY - unitType.height / 2,
-                    hp: unitType.hp,
-                    maxHp: unitType.hp,
-                    ...unitType,
-                    state: 'idle',
-                    target: null,
-                    lastAttack: 0,
-                    lastMine: 0,
-                    miningTarget: null,
-                    animFrame: 0,
-                    animTime: 0,
-                    facingRight: player === 1,
-                    shieldHp: unitType.hasShield ? 100 : 0
-                };
-                
-                p.units.push(unit);
-                
-                effects.push({
-                    type: 'spawn',
-                    x: unit.x,
-                    y: unit.y,
-                    radius: 20,
-                    alpha: 1,
-                    color: p.color
-                });
-                
-                // Vibrate feedback on mobile
-                if (navigator.vibrate) navigator.vibrate(30);
-            }
-        }
-        
-        function setCommand(player, command) {
-            if (!gameRunning || gamePaused) return;
-            players[player].command = command;
-            updateCommandButtons(player, command);
-            showCommandIndicator(player, command);
-            if (navigator.vibrate) navigator.vibrate(20);
-        }
-        
-        function updateCommandButtons(player, command) {
-            ['Attack', 'Defend', 'Garrison'].forEach(cmd => {
-                const btn = document.getElementById(`cmdP${player}${cmd}`);
-                if (btn) {
-                    btn.classList.toggle('active', cmd.toLowerCase() === command);
-                }
-            });
-        }
-        
-        function showCommandIndicator(player, command) {
-            const el = document.getElementById('commandIndicator');
-            const commands = {
-                attack: '⚔️ ATTACK!',
-                defend: '🛡️ DEFEND!',
-                garrison: '🏠 GARRISON!'
-            };
-            el.textContent = `P${player}: ${commands[command]}`;
-            el.style.color = players[player].color;
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 800);
-        }
-        
-        // ==================== GAME LOOP ====================
-        function gameLoop(currentTime) {
-            if (!gameRunning || gamePaused) return;
-            
-            const dt = Math.min((currentTime - lastTime) / 1000, 0.05);
-            lastTime = currentTime;
-            
-            update(dt);
-            render();
-            
-            requestAnimationFrame(gameLoop);
-        }
-        
-        function update(dt) {
-            updateCamera(dt);
-            updateJoystickCamera(dt);
-            updateUnits(dt);
-            updateProjectiles(dt);
-            updateEffects(dt);
-            if (gameMode === 'pve') updateAI(dt);
-            checkGameOver();
-            updateHUD();
-        }
-        
-        function updateCamera(dt) {
-            const diff = camera.targetX - camera.x;
-            camera.x += diff * 0.1;
-            camera.x = Math.max(0, Math.min(CONFIG.WORLD_WIDTH - canvas.width, camera.x));
-        }
-        
-        function updateJoystickCamera(dt) {
-            const speed = 400 * dt;
-            
-            if (joysticks[1].active) {
-                camera.targetX += joysticks[1].dx * speed;
-            }
-            if (joysticks[2].active) {
-                camera.targetX += joysticks[2].dx * speed;
-            }
-            
-            camera.targetX = Math.max(0, Math.min(CONFIG.WORLD_WIDTH - canvas.width, camera.targetX));
-        }
-        
-        function updateUnits(dt) {
-            const groundY = canvas.height * CONFIG.GROUND_Y;
-            
-            for (let player of [1, 2]) {
-                const p = players[player];
-                const enemy = players[player === 1 ? 2 : 1];
-                
-                for (let unit of p.units) {
-                    unit.animTime += dt * 1000;
-                    if (unit.animTime > 100) {
-                        unit.animFrame = (unit.animFrame + 1) % 4;
-                        unit.animTime = 0;
-                    }
-                    
-                    // Miner behavior
-                    if (unit.type === 'miner') {
-                        updateMiner(unit, p, dt);
-                        continue;
-                    }
-                    
-                    // Combat unit behavior
-                    const command = p.command;
-                    
-                    if (command === 'garrison') {
-                        const targetX = p.spawnX;
-                        if (Math.abs(unit.x - targetX) > 50) {
-                            unit.x += (targetX > unit.x ? 1 : -1) * unit.speed;
-                            unit.state = 'moving';
-                            unit.facingRight = targetX > unit.x;
-                        } else {
-                            unit.state = 'idle';
-                        }
-                    } else {
-                        let target = findTarget(unit, enemy);
-                        
-                        if (target) {
-                            const dist = Math.abs(target.x - unit.x);
-                            
-                            if (dist <= unit.range) {
-                                unit.state = 'attacking';
-                                unit.facingRight = target.x > unit.x;
-                                
-                                if (Date.now() - unit.lastAttack > unit.attackSpeed) {
-                                    attack(unit, target, enemy);
-                                    unit.lastAttack = Date.now();
-                                }
-                            } else if (command === 'attack' || dist < 250) {
-                                unit.x += (target.x > unit.x ? 1 : -1) * unit.speed;
-                                unit.state = 'moving';
-                                unit.facingRight = target.x > unit.x;
-                            } else {
-                                unit.state = 'idle';
-                            }
-                        } else if (command === 'attack') {
-                            const statueX = enemy.spawnX;
-                            if (Math.abs(unit.x - statueX) > unit.range) {
-                                unit.x += (statueX > unit.x ? 1 : -1) * unit.speed;
-                                unit.state = 'moving';
-                                unit.facingRight = statueX > unit.x;
-                            } else {
-                                if (Date.now() - unit.lastAttack > unit.attackSpeed) {
-                                    enemy.statue.hp -= unit.damage;
-                                    unit.lastAttack = Date.now();
-                                    
-                                    effects.push({
-                                        type: 'hit',
-                                        x: statueX,
-                                        y: groundY - 60,
-                                        text: '-' + unit.damage,
-                                        alpha: 1
-                                    });
-                                }
-                            }
-                        } else {
-                            unit.state = 'idle';
-                        }
-                    }
-                }
-                
-                p.units = p.units.filter(u => u.hp > 0);
-                p.pop = p.units.reduce((sum, u) => sum + u.pop, 0);
-            }
-        }
-        
-        function updateMiner(unit, player, dt) {
-            if (!unit.miningTarget) {
-                let nearestMine = null;
-                let nearestDist = Infinity;
-                
-                for (let mine of mines) {
-                    const dist = Math.abs(mine.x - unit.x);
-                    if (dist < nearestDist) {
-                        nearestDist = dist;
-                        nearestMine = mine;
-                    }
-                }
-                unit.miningTarget = nearestMine;
-            }
-            
-            if (unit.miningTarget) {
-                const dist = Math.abs(unit.miningTarget.x - unit.x);
-                
-                if (dist > 25) {
-                    unit.x += (unit.miningTarget.x > unit.x ? 1 : -1) * unit.speed;
-                    unit.state = 'moving';
-                    unit.facingRight = unit.miningTarget.x > unit.x;
-                } else {
-                    unit.state = 'mining';
-                    
-                    if (Date.now() - unit.lastMine > CONFIG.MINE_INTERVAL) {
-                        player.gold += CONFIG.GOLD_PER_MINE;
-                        unit.lastMine = Date.now();
-                        
-                        effects.push({
-                            type: 'gold',
-                            x: unit.x,
-                            y: unit.y - 15,
-                            text: '+' + CONFIG.GOLD_PER_MINE,
-                            alpha: 1
-                        });
-                    }
-                }
-            }
-        }
-        
-        function findTarget(unit, enemy) {
-            let nearest = null;
-            let nearestDist = Infinity;
-            
-            for (let e of enemy.units) {
-                const dist = Math.abs(e.x - unit.x);
-                if (dist < nearestDist) {
-                    nearestDist = dist;
-                    nearest = e;
-                }
-            }
-            return nearest;
-        }
-        
-        function attack(unit, target, enemy) {
-            if (unit.isRanged) {
-                projectiles.push({
-                    x: unit.x,
-                    y: unit.y,
-                    targetX: target.x,
-                    targetY: target.y,
-                    speed: 12,
-                    damage: unit.damage,
-                    player: unit.player,
-                    isMagic: unit.isMagic,
-                    splashRadius: unit.splashRadius || 0,
-                    color: unit.isMagic ? '#9400D3' : '#8B4513'
-                });
+            if (u.isMiner) {
+                updateMiner(u, p, groundY, dt);
             } else {
-                let damage = unit.damage;
-                
-                if (target.hasShield && target.shieldHp > 0) {
-                    const blocked = damage * target.shieldBlock;
-                    damage -= blocked;
-                    target.shieldHp -= blocked;
-                }
-                
-                target.hp -= damage;
-                
-                if (unit.knockback) {
-                    target.x += (target.x > unit.x ? 25 : -25);
-                }
-                
-                effects.push({
-                    type: 'hit',
-                    x: target.x,
-                    y: target.y - 15,
-                    text: '-' + Math.floor(damage),
-                    alpha: 1
-                });
-                
-                if (target.hp <= 0) {
-                    effects.push({
-                        type: 'death',
-                        x: target.x,
-                        y: target.y,
-                        radius: 15,
-                        alpha: 1
-                    });
-                }
+                updateCombat(u, p, enemy, groundY, dt);
             }
         }
         
-        function updateProjectiles(dt) {
-            for (let proj of projectiles) {
-                const dx = proj.targetX - proj.x;
-                const dy = proj.targetY - proj.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                
-                if (dist < proj.speed) {
-                    const enemy = players[proj.player === 1 ? 2 : 1];
-                    
-                    if (proj.splashRadius > 0) {
-                        for (let unit of enemy.units) {
-                            const d = Math.abs(unit.x - proj.targetX);
-                            if (d < proj.splashRadius) {
-                                unit.hp -= proj.damage * (1 - d / proj.splashRadius);
-                            }
-                        }
-                        effects.push({
-                            type: 'explosion',
-                            x: proj.targetX,
-                            y: proj.targetY,
-                            radius: 10,
-                            maxRadius: proj.splashRadius,
-                            alpha: 1,
-                            color: proj.color
-                        });
-                    } else {
-                        for (let unit of enemy.units) {
-                            if (Math.abs(unit.x - proj.targetX) < 25) {
-                                unit.hp -= proj.damage;
-                                effects.push({
-                                    type: 'hit',
-                                    x: unit.x,
-                                    y: unit.y - 15,
-                                    text: '-' + proj.damage,
-                                    alpha: 1
-                                });
-                                break;
-                            }
-                        }
+        p.units = p.units.filter(u => u.hp > 0);
+        p.pop = p.units.reduce((s, u) => s + u.pop, 0);
+    }
+    
+    // Projectiles
+    for (let proj of projectiles) {
+        const dx = proj.tx - proj.x;
+        const dy = proj.ty - proj.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < proj.spd) {
+            const enemy = players[proj.pid === 1 ? 2 : 1];
+            
+            if (proj.splash) {
+                for (let u of enemy.units) {
+                    const d = Math.abs(u.x - proj.tx);
+                    if (d < proj.splash) {
+                        u.hp -= proj.dmg * (1 - d / proj.splash);
                     }
-                    proj.dead = true;
-                } else {
-                    proj.x += (dx / dist) * proj.speed;
-                    proj.y += (dy / dist) * proj.speed;
                 }
-            }
-            
-            projectiles = projectiles.filter(p => !p.dead);
-        }
-        
-        function updateEffects(dt) {
-            for (let effect of effects) {
-                effect.alpha -= dt * 2.5;
-                
-                if (effect.type === 'hit' || effect.type === 'gold') {
-                    effect.y -= dt * 40;
-                }
-                if (effect.type === 'explosion') {
-                    effect.radius += dt * 150;
-                }
-                if (effect.type === 'spawn' || effect.type === 'death') {
-                    effect.radius += dt * 60;
-                }
-            }
-            effects = effects.filter(e => e.alpha > 0);
-        }
-        
-        function updateAI(dt) {
-            const ai = players[2];
-            
-            // Spawn units
-            if (Math.random() < 0.03) {
-                const types = ['miner', 'swordwrath', 'archidon', 'spearton', 'magikill', 'giant'];
-                const weights = [0.35, 0.25, 0.18, 0.12, 0.07, 0.03];
-                
-                let r = Math.random();
-                let cumulative = 0;
-                for (let i = 0; i < types.length; i++) {
-                    cumulative += weights[i];
-                    if (r < cumulative) {
-                        spawnUnit(2, types[i]);
+                effects.push({ type: 'explode', x: proj.tx, y: proj.ty, r: 5, max: proj.splash, alpha: 1, color: '#9400D3' });
+            } else {
+                for (let u of enemy.units) {
+                    if (Math.abs(u.x - proj.tx) < 20) {
+                        u.hp -= proj.dmg;
+                        effects.push({ type: 'hit', x: u.x, y: groundY - u.h - 5, text: '-' + proj.dmg, alpha: 1 });
                         break;
                     }
                 }
             }
-            
-            // Command logic
-            const combatUnits = ai.units.filter(u => u.type !== 'miner').length;
-            if (combatUnits > 4) {
-                if (ai.command !== 'attack') setCommand(2, 'attack');
-            } else if (ai.statue.hp < 400) {
-                if (ai.command !== 'defend') setCommand(2, 'defend');
+            proj.dead = true;
+        } else {
+            proj.x += (dx / dist) * proj.spd;
+            proj.y += (dy / dist) * proj.spd;
+        }
+    }
+    projectiles = projectiles.filter(p => !p.dead);
+    
+    // Effects
+    for (let e of effects) {
+        e.alpha -= dt * 2.5;
+        if (e.type === 'hit' || e.type === 'gold') e.y -= dt * 35;
+        if (e.type === 'explode') e.r = Math.min(e.r + dt * 80, e.max);
+        if (e.type === 'spawn') e.r += dt * 30;
+    }
+    effects = effects.filter(e => e.alpha > 0);
+    
+    // AI
+    if (mode === 'pve') updateAI(dt);
+    
+    // Win check
+    if (players[1].statue <= 0) endGame(2);
+    if (players[2].statue <= 0) endGame(1);
+    
+    updateHUD();
+}
+
+function updateMiner(u, p, groundY, dt) {
+    const homeX = p.spawnX;
+    
+    if (!u.target) {
+        const myMines = mines.filter(m => m.owner === u.player);
+        let best = null, bestD = Infinity;
+        for (let m of myMines) {
+            const d = Math.abs(m.x - u.x);
+            if (d < bestD) { bestD = d; best = m; }
+        }
+        u.target = best;
+    }
+    
+    if (u.carrying > 0) {
+        if (Math.abs(u.x - homeX) > 25) {
+            u.x += (homeX > u.x ? 1 : -1) * u.spd;
+            u.state = 'return';
+            u.facing = homeX > u.x;
+        } else {
+            p.gold += u.carrying;
+            effects.push({ type: 'gold', x: u.x, y: groundY - 45, text: '+' + u.carrying, alpha: 1 });
+            u.carrying = 0;
+            u.state = 'idle';
+        }
+    } else if (u.target) {
+        if (Math.abs(u.x - u.target.x) > 20) {
+            u.x += (u.target.x > u.x ? 1 : -1) * u.spd;
+            u.state = 'walk';
+            u.facing = u.target.x > u.x;
+        } else {
+            u.state = 'mine';
+            u.mineTime += dt * 1000;
+            if (u.mineTime >= 1200) {
+                u.carrying = 50;
+                u.mineTime = 0;
             }
         }
+    }
+}
+
+function updateCombat(u, p, enemy, groundY, dt) {
+    const cmd = p.cmd;
+    const homeX = p.spawnX;
+    const enemyX = enemy.spawnX;
+    
+    if (cmd === 'garrison') {
+        if (Math.abs(u.x - homeX) > 50) {
+            u.x += (homeX > u.x ? 1 : -1) * u.spd;
+            u.state = 'move';
+            u.facing = homeX > u.x;
+        } else {
+            u.state = 'idle';
+        }
+        return;
+    }
+    
+    let target = null, minD = Infinity;
+    for (let e of enemy.units) {
+        const d = Math.abs(e.x - u.x);
+        if (d < minD) { minD = d; target = e; }
+    }
+    
+    if (target && minD <= u.range) {
+        u.state = 'attack';
+        u.facing = target.x > u.x;
         
-        function checkGameOver() {
-            if (players[1].statue.hp <= 0) endGame(2);
-            else if (players[2].statue.hp <= 0) endGame(1);
+        if (Date.now() - u.lastAtk > u.atkSpd) {
+            doAttack(u, target, enemy, groundY);
+            u.lastAtk = Date.now();
+        }
+    } else if (target && (cmd === 'attack' || minD < 160)) {
+        u.x += (target.x > u.x ? 1 : -1) * u.spd;
+        u.state = 'move';
+        u.facing = target.x > u.x;
+    } else if (cmd === 'attack') {
+        if (Math.abs(u.x - enemyX) > u.range) {
+            u.x += (enemyX > u.x ? 1 : -1) * u.spd;
+            u.state = 'move';
+            u.facing = enemyX > u.x;
+        } else {
+            u.state = 'attack';
+            if (Date.now() - u.lastAtk > u.atkSpd) {
+                enemy.statue -= u.dmg;
+                u.lastAtk = Date.now();
+                effects.push({ type: 'hit', x: enemyX, y: groundY - 80, text: '-' + u.dmg, alpha: 1 });
+            }
+        }
+    } else {
+        u.state = 'idle';
+    }
+}
+
+function doAttack(u, target, enemy, groundY) {
+    if (u.ranged) {
+        projectiles.push({
+            x: u.x, y: groundY - u.h/2,
+            tx: target.x, ty: groundY - target.h/2,
+            spd: 8, dmg: u.dmg, pid: u.player,
+            splash: u.splash || 0, magic: u.magic
+        });
+    } else {
+        let dmg = u.dmg;
+        if (target.shield && Math.random() < target.shield) {
+            dmg *= 0.25;
+            effects.push({ type: 'hit', x: target.x, y: groundY - target.h - 8, text: '🛡️', alpha: 1 });
+        }
+        target.hp -= dmg;
+        if (u.kb) target.x += (target.x > u.x ? 1 : -1) * u.kb;
+        effects.push({ type: 'hit', x: target.x, y: groundY - target.h - 5, text: '-' + Math.floor(dmg), alpha: 1 });
+        
+        if (target.hp <= 0) {
+            effects.push({ type: 'spawn', x: target.x, y: groundY - target.h/2, r: 5, alpha: 1, color: '#ff0000' });
+        }
+    }
+}
+
+function updateAI(dt) {
+    const ai = players[2];
+    
+    if (Math.random() < 0.028) {
+        const types = ['miner', 'sword', 'archer', 'spear', 'mage', 'giant'];
+        const weights = [0.32, 0.26, 0.18, 0.13, 0.07, 0.04];
+        let r = Math.random(), c = 0;
+        for (let i = 0; i < types.length; i++) {
+            c += weights[i];
+            if (r < c) { spawnUnit(2, types[i]); break; }
+        }
+    }
+    
+    const combat = ai.units.filter(u => !u.isMiner).length;
+    if (combat >= 5 && ai.statue > 350) {
+        if (ai.cmd !== 'attack') setCommand(2, 'attack');
+    } else if (ai.statue < 250) {
+        if (ai.cmd !== 'defend') setCommand(2, 'defend');
+    }
+}
+
+function updateHUD() {
+    document.getElementById('gold1').textContent = Math.floor(players[1].gold);
+    document.getElementById('pop1').textContent = players[1].pop;
+    document.getElementById('gold2').textContent = Math.floor(players[2].gold);
+    document.getElementById('pop2').textContent = players[2].pop;
+}
+
+// ============ RENDER ============
+function render() {
+    const groundY = canvas.height * GROUND;
+    
+    // Sky
+    const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+    sky.addColorStop(0, '#87CEEB');
+    sky.addColorStop(1, '#c8e6f5');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, groundY);
+    
+    // Sun
+    ctx.fillStyle = '#FFD700';
+    ctx.beginPath();
+    ctx.arc(canvas.width - 40, 35, 20, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Clouds
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    const t = Date.now() * 0.003;
+    for (let i = 0; i < 5; i++) {
+        const cx = ((i * 250 + t) % (canvas.width + 100)) - 50;
+        drawCloud(cx, 30 + i * 12, 15 + i * 2);
+    }
+    
+    // Ground
+    const gnd = ctx.createLinearGradient(0, groundY, 0, canvas.height);
+    gnd.addColorStop(0, '#228B22');
+    gnd.addColorStop(1, '#0d3d0d');
+    ctx.fillStyle = gnd;
+    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+    
+    ctx.save();
+    ctx.scale(scale, 1);
+    
+    // Mines
+    for (let m of mines) {
+        ctx.fillStyle = '#3d2817';
+        ctx.fillRect(m.x - 18, groundY - 10, 36, 10);
+        
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.moveTo(m.x - 14, groundY - 10);
+        ctx.lineTo(m.x, groundY - 28);
+        ctx.lineTo(m.x + 14, groundY - 10);
+        ctx.fill();
+        
+        if (Math.random() > 0.95) {
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(m.x + (Math.random()-0.5)*20, groundY - 18, 2, 0, Math.PI*2);
+            ctx.fill();
         }
         
-        function endGame(winner) {
-            gameRunning = false;
-            
-            const screen = document.getElementById('gameOverScreen');
-            const text = document.getElementById('winnerText');
-            
-            screen.className = 'screen ' + (winner === 1 ? 'p1-win' : 'p2-win');
-            text.textContent = winner === 1 ? '🎉 PLAYER 1 THẮNG!' : '🎉 PLAYER 2 THẮNG!';
-            text.style.color = winner === 1 ? '#4a9eff' : '#ff4a4a';
-            
-            screen.classList.remove('hidden');
-            
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+        ctx.fillStyle = m.owner === 1 ? '#4a9eff' : '#ff4a4a';
+        ctx.beginPath();
+        ctx.arc(m.x, groundY - 35, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // Statues with Health Bars
+    for (let pid of [1, 2]) {
+        const p = players[pid];
+        const x = p.spawnX;
+        
+        // Platform
+        ctx.fillStyle = '#555';
+        ctx.fillRect(x - 30, groundY - 12, 60, 12);
+        ctx.fillRect(x - 24, groundY - 24, 48, 12);
+        
+        // Body
+        ctx.fillStyle = p.color;
+        ctx.fillRect(x - 15, groundY - 70, 30, 46);
+        
+        // Head
+        ctx.beginPath();
+        ctx.arc(x, groundY - 82, 14, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Crown
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.moveTo(x - 8, groundY - 92);
+        ctx.lineTo(x, groundY - 105);
+        ctx.lineTo(x + 8, groundY - 92);
+        ctx.fill();
+        
+        // Eyes
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(x - 4, groundY - 84, 2.5, 0, Math.PI * 2);
+        ctx.arc(x + 4, groundY - 84, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // ========== HEALTH BAR ==========
+        const barWidth = 70;
+        const barHeight = 10;
+        const barX = x - barWidth / 2;
+        const barY = groundY - 125;
+        const hpPercent = Math.max(0, p.statue / p.maxStatue);
+        
+        // Background
+        ctx.fillStyle = '#333';
+        ctx.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
+        
+        // Border
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
+        
+        // Health fill
+        let hpColor;
+        if (hpPercent > 0.6) {
+            hpColor = '#2ecc71';
+        } else if (hpPercent > 0.3) {
+            hpColor = '#f39c12';
+        } else {
+            hpColor = '#e74c3c';
         }
         
-        function updateHUD() {
-            document.getElementById('goldP1').textContent = Math.floor(players[1].gold);
-            document.getElementById('popP1').textContent = players[1].pop;
-            document.getElementById('goldP2').textContent = Math.floor(players[2].gold);
-            document.getElementById('popP2').textContent = players[2].pop;
-            
-            const hp1Pct = (players[1].statue.hp / players[1].statue.maxHp) * 100;
-            const hp2Pct = (players[2].statue.hp / players[2].statue.maxHp) * 100;
-            
-            document.getElementById('hpFillP1').style.width = hp1Pct + '%';
-            document.getElementById('hpFillP2').style.width = hp2Pct + '%';
-            document.getElementById('hpTextP1').textContent = Math.max(0, Math.floor(players[1].statue.hp));
-            document.getElementById('hpTextP2').textContent = Math.max(0, Math.floor(players[2].statue.hp));
-        }
+        // Gradient health bar
+        const hpGrad = ctx.createLinearGradient(barX, barY, barX, barY + barHeight);
+        hpGrad.addColorStop(0, hpColor);
+        hpGrad.addColorStop(0.5, hpColor);
+        hpGrad.addColorStop(1, shadeColor(hpColor, -30));
+        ctx.fillStyle = hpGrad;
+        ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
         
-        // ==================== RENDERING ====================
-        function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            drawBackground();
-            
-            ctx.save();
-            ctx.translate(-camera.x, 0);
-            
-            drawMines();
-            drawStatues();
-            drawUnits();
-            drawProjectiles();
-            drawEffects();
-            
-            ctx.restore();
-            
-            drawMinimap();
-        }
+        // HP Text
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        const hpText = Math.floor(p.statue) + ' / ' + p.maxStatue;
+        ctx.strokeText(hpText, x, barY + barHeight - 1);
+        ctx.fillText(hpText, x, barY + barHeight - 1);
         
-        function drawBackground() {
-            const groundY = canvas.height * CONFIG.GROUND_Y;
-            
-            // Sky
-            const skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
-            skyGrad.addColorStop(0, '#87CEEB');
-            skyGrad.addColorStop(1, '#E0F7FA');
-            ctx.fillStyle = skyGrad;
-            ctx.fillRect(0, 0, canvas.width, groundY);
-            
-            // Sun
+        // Player label
+        ctx.font = 'bold 12px Arial';
+        ctx.fillStyle = p.color;
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        const label = pid === 1 ? '🔵 P1' : 'P2 🔴';
+        ctx.strokeText(label, x, barY - 8);
+        ctx.fillText(label, x, barY - 8);
+    }
+    
+    // Units
+    for (let pid of [1, 2]) {
+        for (let u of players[pid].units) {
+            drawUnit(u, players[pid].color, groundY);
+        }
+    }
+    
+    // Projectiles
+    for (let p of projectiles) {
+        ctx.fillStyle = p.magic ? '#9400D3' : '#8B4513';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.magic ? 5 : 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (p.magic) {
+            ctx.fillStyle = 'rgba(148,0,211,0.3)';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    // Effects
+    for (let e of effects) {
+        ctx.globalAlpha = e.alpha;
+        if (e.type === 'hit') {
+            ctx.fillStyle = '#FF3333';
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(e.text, e.x, e.y);
+        } else if (e.type === 'gold') {
             ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(e.text, e.x, e.y);
+        } else if (e.type === 'spawn' || e.type === 'explode') {
+            ctx.strokeStyle = e.color || '#9400D3';
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(canvas.width - 60, 50, 25, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Clouds
-            ctx.fillStyle = 'rgba(255,255,255,0.7)';
-            for (let i = 0; i < 4; i++) {
-                const cx = ((i * 350 + Date.now() * 0.008 - camera.x * 0.1) % (canvas.width + 150)) - 50;
-                drawCloud(cx, 40 + i * 15, 20 + i * 3);
-            }
-            
-            // Ground
-            const groundGrad = ctx.createLinearGradient(0, groundY, 0, canvas.height);
-            groundGrad.addColorStop(0, '#228B22');
-            groundGrad.addColorStop(1, '#0d3d0d');
-            ctx.fillStyle = groundGrad;
-            ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-        }
-        
-        function drawCloud(x, y, size) {
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.arc(x + size * 0.7, y - size * 0.2, size * 0.6, 0, Math.PI * 2);
-            ctx.arc(x + size * 1.3, y, size * 0.7, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        function drawMines() {
-            const groundY = canvas.height * CONFIG.GROUND_Y;
-            
-            for (let mine of mines) {
-                // Base
-                ctx.fillStyle = '#4a3728';
-                ctx.fillRect(mine.x - 25, groundY - 15, 50, 15);
-                
-                // Gold pile
-                ctx.fillStyle = '#FFD700';
-                ctx.beginPath();
-                ctx.moveTo(mine.x - 20, groundY - 15);
-                ctx.lineTo(mine.x, groundY - 35);
-                ctx.lineTo(mine.x + 20, groundY - 15);
-                ctx.fill();
-                
-                // Sign
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(mine.x - 3, groundY - 50, 6, 35);
-                ctx.fillStyle = '#DEB887';
-                ctx.fillRect(mine.x - 15, groundY - 55, 30, 12);
-                
-                ctx.fillStyle = '#000';
-                ctx.font = '8px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('MINE', mine.x, groundY - 46);
-            }
-        }
-        
-        function drawStatues() {
-            const groundY = canvas.height * CONFIG.GROUND_Y;
-            
-            for (let player of [1, 2]) {
-                const p = players[player];
-                const x = p.spawnX;
-                const color = p.color;
-                
-                // Pedestal
-                ctx.fillStyle = '#555';
-                ctx.fillRect(x - 40, groundY - 20, 80, 20);
-                ctx.fillRect(x - 30, groundY - 40, 60, 20);
-                
-                // Statue
-                ctx.fillStyle = color;
-                ctx.fillRect(x - 20, groundY - 100, 40, 60);
-                
-                // Head
-                ctx.beginPath();
-                ctx.arc(x, groundY - 115, 18, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Crown
-                ctx.fillStyle = '#FFD700';
-                ctx.beginPath();
-                ctx.moveTo(x - 12, groundY - 125);
-                ctx.lineTo(x, groundY - 140);
-                ctx.lineTo(x + 12, groundY - 125);
-                ctx.fill();
-            }
-        }
-        
-        function drawUnits() {
-            const groundY = canvas.height * CONFIG.GROUND_Y;
-            
-            for (let player of [1, 2]) {
-                for (let unit of players[player].units) {
-                    drawUnit(unit, players[player].color, groundY);
-                }
-            }
-        }
-        
-        function drawUnit(unit, teamColor, groundY) {
-            const x = unit.x;
-            const y = groundY - unit.height;
-            const scale = unit.type === 'giant' ? 1.8 : 1;
-            const flip = unit.facingRight ? 1 : -1;
-            
-            ctx.save();
-            ctx.translate(x, y + unit.height / 2);
-            ctx.scale(flip, 1);
-            
-            const animOffset = Math.sin(unit.animFrame * Math.PI / 2) * 2;
-            
-            // Head
-            ctx.fillStyle = unit.color;
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 1.5 * scale;
-            ctx.beginPath();
-            ctx.arc(0, -15 * scale + animOffset, 6 * scale, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
             ctx.stroke();
-            
-            // Team band
-            ctx.fillStyle = teamColor;
-            ctx.fillRect(-6 * scale, -18 * scale + animOffset, 12 * scale, 3 * scale);
-            
-            // Body
-            ctx.strokeStyle = unit.color;
-            ctx.lineWidth = 3 * scale;
-            ctx.beginPath();
-            ctx.moveTo(0, -9 * scale + animOffset);
-            ctx.lineTo(0, 8 * scale + animOffset);
-            ctx.stroke();
-            
-            // Arms
-            const armAngle = unit.state === 'attacking' ? 0.8 : 0.3;
-            ctx.beginPath();
-            ctx.moveTo(0, -4 * scale + animOffset);
-            ctx.lineTo(8 * scale, -4 * scale + 8 * scale * armAngle + animOffset);
-            ctx.moveTo(0, -4 * scale + animOffset);
-            ctx.lineTo(-8 * scale, -4 * scale + 6 * scale * armAngle + animOffset);
-            ctx.stroke();
-            
-            // Legs
-            const legOff = unit.state === 'moving' ? animOffset * 1.5 : 0;
-            ctx.beginPath();
-            ctx.moveTo(0, 8 * scale + animOffset);
-            ctx.lineTo(-5 * scale, 18 * scale + legOff);
-            ctx.moveTo(0, 8 * scale + animOffset);
-            ctx.lineTo(5 * scale, 18 * scale - legOff);
-            ctx.stroke();
-            
-            // Weapon
-            ctx.lineWidth = 2 * scale;
-            if (unit.type === 'swordwrath') {
-                ctx.strokeStyle = '#C0C0C0';
-                ctx.beginPath();
-                ctx.moveTo(8 * scale, 2 + animOffset);
-                ctx.lineTo(18 * scale, -10 * scale + animOffset);
-                ctx.stroke();
-            } else if (unit.type === 'archidon') {
-                ctx.strokeStyle = '#8B4513';
-                ctx.beginPath();
-                ctx.arc(10 * scale, animOffset, 8 * scale, -Math.PI / 2, Math.PI / 2);
-                ctx.stroke();
-            } else if (unit.type === 'spearton') {
-                ctx.strokeStyle = '#8B4513';
-                ctx.beginPath();
-                ctx.moveTo(8 * scale, -6 * scale + animOffset);
-                ctx.lineTo(22 * scale, -22 * scale + animOffset);
-                ctx.stroke();
-                ctx.fillStyle = teamColor;
-                ctx.beginPath();
-                ctx.ellipse(-10 * scale, animOffset, 5 * scale, 10 * scale, 0, 0, Math.PI * 2);
-                ctx.fill();
-            } else if (unit.type === 'magikill') {
-                ctx.strokeStyle = '#9400D3';
-                ctx.beginPath();
-                ctx.moveTo(8 * scale, 6 * scale + animOffset);
-                ctx.lineTo(14 * scale, -18 * scale + animOffset);
-                ctx.stroke();
-                ctx.fillStyle = '#9400D3';
-                ctx.beginPath();
-                ctx.arc(14 * scale, -22 * scale + animOffset, 4 * scale, 0, Math.PI * 2);
-                ctx.fill();
-            } else if (unit.type === 'miner') {
-                ctx.strokeStyle = '#888';
-                ctx.beginPath();
-                ctx.moveTo(8 * scale, animOffset);
-                ctx.lineTo(14 * scale, -10 * scale + animOffset);
-                ctx.lineTo(18 * scale, -6 * scale + animOffset);
-                ctx.stroke();
-            } else if (unit.type === 'giant') {
-                ctx.strokeStyle = '#654321';
-                ctx.lineWidth = 6;
-                ctx.beginPath();
-                ctx.moveTo(12 * scale, animOffset);
-                ctx.lineTo(28 * scale, -15 * scale + animOffset);
-                ctx.stroke();
-            }
-            
-            ctx.restore();
-            
-            // HP bar
-            if (unit.hp < unit.maxHp) {
-                const hpPct = unit.hp / unit.maxHp;
-                const barW = 25 * scale;
-                ctx.fillStyle = '#333';
-                ctx.fillRect(x - barW / 2, groundY - unit.height - 10, barW, 4);
-                ctx.fillStyle = hpPct > 0.5 ? '#4CAF50' : hpPct > 0.25 ? '#FFC107' : '#F44336';
-                ctx.fillRect(x - barW / 2, groundY - unit.height - 10, barW * hpPct, 4);
-            }
-            
-            // Mining indicator
-            if (unit.state === 'mining') {
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('⛏️', x, groundY - unit.height - 15);
-            }
         }
+        ctx.globalAlpha = 1;
+    }
+    
+    ctx.restore();
+}
+
+function shadeColor(color, percent) {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return '#' + (0x1000000 + 
+        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 + 
+        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 + 
+        (B < 255 ? (B < 1 ? 0 : B) : 255)
+    ).toString(16).slice(1);
+}
+
+function drawCloud(x, y, s) {
+    ctx.beginPath();
+    ctx.arc(x, y, s, 0, Math.PI * 2);
+    ctx.arc(x + s * 0.8, y - s * 0.3, s * 0.7, 0, Math.PI * 2);
+    ctx.arc(x + s * 1.5, y, s * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawUnit(u, color, groundY) {
+    const x = u.x;
+    const unitScale = u.id === 'giant' ? 1.5 : 1;
+    const flip = u.facing ? 1 : -1;
+    const bob = Math.sin(u.anim) * 1.5;
+    
+    ctx.save();
+    ctx.translate(x, groundY);
+    ctx.scale(flip * unitScale, unitScale);
+    
+    // Carrying gold
+    if (u.carrying > 0) {
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('💰', 0, -u.h - 10);
+    }
+    
+    // Mining bar
+    if (u.state === 'mine' && u.mineTime > 0) {
+        ctx.fillStyle = '#333';
+        ctx.fillRect(-10, -u.h - 8, 20, 3);
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(-10, -u.h - 8, 20 * (u.mineTime / 1200), 3);
+    }
+    
+    const h = -u.h;
+    
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(0, -1, 8, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Head
+    ctx.fillStyle = '#FDB';
+    ctx.beginPath();
+    ctx.arc(0, h + 6 + bob, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    
+    // Headband
+    ctx.fillStyle = color;
+    ctx.fillRect(-5, h + 3 + bob, 10, 3);
+    
+    // Body
+    ctx.strokeStyle = u.color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(0, h + 11 + bob);
+    ctx.lineTo(0, h + 24 + bob);
+    ctx.stroke();
+    
+    // Arms
+    const armY = u.state === 'attack' ? 8 : 4;
+    ctx.beginPath();
+    ctx.moveTo(0, h + 14 + bob);
+    ctx.lineTo(7, h + 14 + armY + bob);
+    ctx.moveTo(0, h + 14 + bob);
+    ctx.lineTo(-7, h + 14 + armY + bob);
+    ctx.stroke();
+    
+    // Legs
+    const legOff = (u.state === 'move' || u.state === 'walk' || u.state === 'return') ? bob * 1.2 : 0;
+    ctx.beginPath();
+    ctx.moveTo(0, h + 24 + bob);
+    ctx.lineTo(-4, -2 + legOff);
+    ctx.moveTo(0, h + 24 + bob);
+    ctx.lineTo(4, -2 - legOff);
+    ctx.stroke();
+    
+    // Weapon
+    ctx.lineWidth = 1.8;
+    if (u.id === 'miner') {
+        ctx.strokeStyle = '#654';
+        ctx.beginPath();
+        ctx.moveTo(7, h + 16 + bob);
+        ctx.lineTo(13, h + 8 + bob);
+        ctx.moveTo(11, h + 10 + bob);
+        ctx.lineTo(16, h + 13 + bob);
+        ctx.stroke();
+    } else if (u.id === 'sword') {
+        ctx.strokeStyle = '#CCC';
+        ctx.beginPath();
+        ctx.moveTo(7, h + 18 + bob);
+        ctx.lineTo(16, h + 6 + bob);
+        ctx.stroke();
+    } else if (u.id === 'archer') {
+        ctx.strokeStyle = '#654';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(9, h + 16 + bob, 7, -1.4, 1.4);
+        ctx.stroke();
+    } else if (u.id === 'spear') {
+        ctx.strokeStyle = '#654';
+        ctx.beginPath();
+        ctx.moveTo(7, h + 12 + bob);
+        ctx.lineTo(18, h - 2 + bob);
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.ellipse(-9, h + 18 + bob, 4, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (u.id === 'mage') {
+        ctx.strokeStyle = '#93D';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(7, h + 20 + bob);
+        ctx.lineTo(11, h + 2 + bob);
+        ctx.stroke();
+        ctx.fillStyle = '#93D';
+        ctx.beginPath();
+        ctx.arc(11, h - 2 + bob, 4, 0, Math.PI * 2);
+        ctx.fill();
+    } else if (u.id === 'giant') {
+        ctx.strokeStyle = '#432';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(10, h + 18 + bob);
+        ctx.lineTo(26, h + 2 + bob);
+        ctx.stroke();
+    }
+    
+    ctx.restore();
+    
+    // HP bar
+    if (u.hp < u.maxHp) {
+        const barW = 18 * unitScale * scale;
+        const pct = u.hp / u.maxHp;
+        const barX = x * scale - barW / 2;
+        const barY = groundY - u.h * unitScale - 10;
         
-        function drawProjectiles() {
-            for (let proj of projectiles) {
-                ctx.fillStyle = proj.color;
-                
-                if (proj.isMagic) {
-                    ctx.beginPath();
-                    ctx.arc(proj.x, proj.y, 6, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.globalAlpha = 0.4;
-                    ctx.beginPath();
-                    ctx.arc(proj.x - 4, proj.y, 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.globalAlpha = 1;
-                } else {
-                    const angle = Math.atan2(proj.targetY - proj.y, proj.targetX - proj.x);
-                    ctx.save();
-                    ctx.translate(proj.x, proj.y);
-                    ctx.rotate(angle);
-                    ctx.beginPath();
-                    ctx.moveTo(12, 0);
-                    ctx.lineTo(-4, -2);
-                    ctx.lineTo(-4, 2);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.restore();
-                }
-            }
-        }
-        
-        function drawEffects() {
-            for (let e of effects) {
-                ctx.globalAlpha = e.alpha;
-                
-                if (e.type === 'hit') {
-                    ctx.fillStyle = '#FF0000';
-                    ctx.font = 'bold 12px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(e.text, e.x, e.y);
-                } else if (e.type === 'gold') {
-                    ctx.fillStyle = '#FFD700';
-                    ctx.font = 'bold 12px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(e.text, e.x, e.y);
-                } else if (e.type === 'explosion') {
-                    ctx.strokeStyle = e.color;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-                    ctx.stroke();
-                } else if (e.type === 'spawn' || e.type === 'death') {
-                    ctx.strokeStyle = e.type === 'spawn' ? e.color : '#FF0000';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-                
-                ctx.globalAlpha = 1;
-            }
-        }
-        
-        function drawMinimap() {
-            const mw = minimapCanvas.width;
-            const mh = minimapCanvas.height;
-            
-            minimapCtx.fillStyle = '#1a1a1a';
-            minimapCtx.fillRect(0, 0, mw, mh);
-            
-            minimapCtx.fillStyle = '#228B22';
-            minimapCtx.fillRect(0, mh * 0.6, mw, mh * 0.4);
-            
-            // Statues
-            const p1x = (players[1].spawnX / CONFIG.WORLD_WIDTH) * mw;
-            const p2x = (players[2].spawnX / CONFIG.WORLD_WIDTH) * mw;
-            
-            minimapCtx.fillStyle = '#4a9eff';
-            minimapCtx.fillRect(p1x - 3, mh * 0.2, 6, mh * 0.5);
-            minimapCtx.fillStyle = '#ff4a4a';
-            minimapCtx.fillRect(p2x - 3, mh * 0.2, 6, mh * 0.5);
-            
-            // Units
-            for (let player of [1, 2]) {
-                minimapCtx.fillStyle = players[player].color;
-                for (let unit of players[player].units) {
-                    const ux = (unit.x / CONFIG.WORLD_WIDTH) * mw;
-                    minimapCtx.fillRect(ux - 1, mh * 0.4, 2, 4);
-                }
-            }
-            
-            // Camera
-            const camX = (camera.x / CONFIG.WORLD_WIDTH) * mw;
-            const camW = (canvas.width / CONFIG.WORLD_WIDTH) * mw;
-            minimapCtx.strokeStyle = '#FFD700';
-            minimapCtx.lineWidth = 1;
-            minimapCtx.strokeRect(camX, 1, camW, mh - 2);
-        }
-        
-        // Start
-        window.onload = init;
-    </script>
+        ctx.fillStyle = '#333';
+        ctx.fillRect(barX, barY, barW, 3);
+        ctx.fillStyle = pct > 0.5 ? '#4C5' : pct > 0.25 ? '#FC0' : '#F44';
+        ctx.fillRect(barX, barY, barW * pct, 3);
+    }
+}
+
+window.onload = init;
+</script>
 </body>
 </html>
