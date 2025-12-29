@@ -132,7 +132,7 @@
         
         .unit-btn {
             width: 48px;
-            height: 42px;
+            height: 46px;
             border: 2px solid #555;
             border-radius: 8px;
             background: #2a2a2a;
@@ -144,15 +144,50 @@
             justify-content: center;
             cursor: pointer;
             touch-action: manipulation;
+            position: relative;
+            overflow: hidden;
         }
         
-        .unit-btn:active {
+        .unit-btn:active:not(.on-cooldown) {
             background: #4a4a4a;
             transform: scale(0.92);
         }
         
-        .unit-btn .icon { font-size: 15px; }
-        .unit-btn .cost { color: gold; font-size: 9px; margin-top: 1px; }
+        .unit-btn .icon { font-size: 15px; z-index: 2; }
+        .unit-btn .cost { color: gold; font-size: 9px; margin-top: 1px; z-index: 2; }
+        
+        /* Cooldown overlay */
+        .unit-btn .cooldown-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: rgba(0,0,0,0.7);
+            transition: height 0.1s linear;
+            z-index: 1;
+        }
+        
+        .unit-btn.on-cooldown {
+            opacity: 0.6;
+            border-color: #333;
+        }
+        
+        .unit-btn .cooldown-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 3;
+            display: none;
+        }
+        
+        .unit-btn.on-cooldown .cooldown-text {
+            display: block;
+        }
         
         .commands {
             display: flex;
@@ -168,6 +203,7 @@
             font-size: 13px;
             cursor: pointer;
             touch-action: manipulation;
+            text-align: center;
         }
         
         .cmd.atk { background: #c0392b; }
@@ -216,7 +252,7 @@
         }
         
         @media (max-width: 400px) {
-            .unit-btn { width: 42px; height: 38px; }
+            .unit-btn { width: 42px; height: 40px; }
             .unit-btn .icon { font-size: 13px; }
             .panel { padding: 5px; }
         }
@@ -241,14 +277,16 @@
                 <h3>🎯 Mục tiêu:</h3>
                 <p>Phá hủy tượng đài đối thủ!</p>
                 <h3>⛏️ Đào vàng:</h3>
-                <p>Miner đi mỏ → Đào → Về nhà → Nhận +50💰</p>
+                <p>Miner đi mỏ → Đào → Về nhà → +50💰</p>
+                <h3>⏱️ Hồi chiêu:</h3>
+                <p>Mỗi loại quân có thời gian hồi chiêu riêng!</p>
+                <h3>🎮 Lệnh:</h3>
+                <p>⚔️ <b>Tấn công:</b> Tiến đánh địch<br>
+                🛡️ <b>Phòng thủ:</b> Bảo vệ thợ mỏ<br>
+                🏠 <b>Đồn trú:</b> Rút về sau nhà, cung thủ vẫn bắn</p>
                 <h3>⚔️ Quân đội:</h3>
-                <p>⛏️Miner 100 | ⚔️Sword 150 | 🏹Archer 300<br>
-                🛡️Spear 500 | 🔮Mage 800 | 👹Giant 1500</p>
-                <h3>🎮 Điều khiển:</h3>
-                <p>• P1 (Xanh): Bảng TRÁI<br>
-                • P2 (Đỏ): Bảng PHẢI<br>
-                • Cả 2 người có thể bấm cùng lúc!</p>
+                <p>⛏️Miner 100 (3s) | ⚔️Sword 150 (4s) | 🏹Archer 300 (5s)<br>
+                🛡️Spear 500 (8s) | 🔮Mage 800 (12s) | 👹Giant 1500 (20s)</p>
             </div>
             <button class="btn red" id="btnBack">⬅️ QUAY LẠI</button>
         </div>
@@ -306,12 +344,12 @@ const GROUND = 0.72;
 const MAX_HP = 1000;
 
 const UNITS_DATA = [
-    { id: 'miner', icon: '⛏️', cost: 100, hp: 60, dmg: 8, spd: 1.8, range: 25, atkSpd: 1000, pop: 1, isMiner: true, h: 28, color: '#FFD700' },
-    { id: 'sword', icon: '⚔️', cost: 150, hp: 100, dmg: 22, spd: 2.8, range: 28, atkSpd: 550, pop: 1, h: 32, color: '#888' },
-    { id: 'archer', icon: '🏹', cost: 300, hp: 70, dmg: 30, spd: 2.2, range: 150, atkSpd: 1200, pop: 2, ranged: true, h: 32, color: '#8B4513' },
-    { id: 'spear', icon: '🛡️', cost: 500, hp: 300, dmg: 38, spd: 1.8, range: 35, atkSpd: 900, pop: 3, shield: 0.45, h: 40, color: '#C0C0C0' },
-    { id: 'mage', icon: '🔮', cost: 800, hp: 140, dmg: 60, spd: 1.5, range: 130, atkSpd: 1800, pop: 4, ranged: true, magic: true, splash: 50, h: 35, color: '#9400D3' },
-    { id: 'giant', icon: '👹', cost: 1500, hp: 900, dmg: 100, spd: 1.0, range: 45, atkSpd: 1400, pop: 7, kb: 25, h: 60, color: '#654321' }
+    { id: 'miner', icon: '⛏️', cost: 100, hp: 60, dmg: 8, spd: 1.8, range: 25, atkSpd: 1000, pop: 1, cooldown: 3000, isMiner: true, h: 28, color: '#FFD700' },
+    { id: 'sword', icon: '⚔️', cost: 150, hp: 100, dmg: 22, spd: 2.8, range: 28, atkSpd: 550, pop: 1, cooldown: 4000, h: 32, color: '#888' },
+    { id: 'archer', icon: '🏹', cost: 300, hp: 70, dmg: 30, spd: 2.2, range: 180, atkSpd: 1200, pop: 2, cooldown: 5000, ranged: true, h: 32, color: '#8B4513' },
+    { id: 'spear', icon: '🛡️', cost: 500, hp: 300, dmg: 38, spd: 1.8, range: 35, atkSpd: 900, pop: 3, cooldown: 8000, shield: 0.45, h: 40, color: '#C0C0C0' },
+    { id: 'mage', icon: '🔮', cost: 800, hp: 140, dmg: 60, spd: 1.5, range: 150, atkSpd: 1800, pop: 4, cooldown: 12000, ranged: true, magic: true, splash: 50, h: 35, color: '#9400D3' },
+    { id: 'giant', icon: '👹', cost: 1500, hp: 900, dmg: 100, spd: 1.0, range: 45, atkSpd: 1400, pop: 7, cooldown: 20000, kb: 25, h: 60, color: '#654321' }
 ];
 
 // ============ GAME STATE ============
@@ -321,6 +359,7 @@ let lastTime = 0;
 let scale = 1;
 
 let players, projectiles, effects, mines;
+let cooldowns = { 1: {}, 2: {} };
 
 // ============ INIT ============
 function init() {
@@ -371,7 +410,13 @@ function createUnitButtons() {
         for (let u of UNITS_DATA) {
             const btn = document.createElement('div');
             btn.className = 'unit-btn';
-            btn.innerHTML = `<span class="icon">${u.icon}</span><span class="cost">${u.cost}</span>`;
+            btn.id = `unit_${p}_${u.id}`;
+            btn.innerHTML = `
+                <span class="icon">${u.icon}</span>
+                <span class="cost">${u.cost}</span>
+                <div class="cooldown-overlay"></div>
+                <span class="cooldown-text"></span>
+            `;
             btn.addEventListener('pointerdown', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -434,12 +479,14 @@ function resetGame() {
         1: { 
             gold: 200, pop: 0, units: [], cmd: 'defend', 
             statue: MAX_HP, maxStatue: MAX_HP,
-            spawnX: 70, color: '#4a9eff', dir: 1 
+            spawnX: 70, color: '#4a9eff', dir: 1,
+            defendLine: 180, garrisonX: 30
         },
         2: { 
             gold: 200, pop: 0, units: [], cmd: 'defend', 
             statue: MAX_HP, maxStatue: MAX_HP,
-            spawnX: WORLD_W - 70, color: '#ff4a4a', dir: -1 
+            spawnX: WORLD_W - 70, color: '#ff4a4a', dir: -1,
+            defendLine: WORLD_W - 180, garrisonX: WORLD_W - 30
         }
     };
     
@@ -453,8 +500,16 @@ function resetGame() {
     projectiles = [];
     effects = [];
     
+    // Reset cooldowns
+    cooldowns = { 1: {}, 2: {} };
+    for (let u of UNITS_DATA) {
+        cooldowns[1][u.id] = 0;
+        cooldowns[2][u.id] = 0;
+    }
+    
     updateCmdUI(1, 'defend');
     updateCmdUI(2, 'defend');
+    updateCooldownUI();
 }
 
 function pauseGame() {
@@ -497,9 +552,17 @@ function spawnUnit(pid, uid) {
     const data = UNITS_DATA.find(u => u.id === uid);
     const p = players[pid];
     
+    // Check cooldown
+    if (cooldowns[pid][uid] > 0) {
+        return;
+    }
+    
     if (p.gold >= data.cost && p.pop + data.pop <= 50) {
         p.gold -= data.cost;
         p.pop += data.pop;
+        
+        // Set cooldown
+        cooldowns[pid][uid] = data.cooldown;
         
         const groundY = canvas.height * GROUND;
         const unit = {
@@ -543,6 +606,30 @@ function updateCmdUI(pid, cmd) {
     });
 }
 
+function updateCooldownUI() {
+    for (let pid of [1, 2]) {
+        for (let u of UNITS_DATA) {
+            const btn = document.getElementById(`unit_${pid}_${u.id}`);
+            if (!btn) continue;
+            
+            const cd = cooldowns[pid][u.id];
+            const overlay = btn.querySelector('.cooldown-overlay');
+            const text = btn.querySelector('.cooldown-text');
+            
+            if (cd > 0) {
+                btn.classList.add('on-cooldown');
+                const pct = (cd / u.cooldown) * 100;
+                overlay.style.height = pct + '%';
+                text.textContent = Math.ceil(cd / 1000) + 's';
+            } else {
+                btn.classList.remove('on-cooldown');
+                overlay.style.height = '0%';
+                text.textContent = '';
+            }
+        }
+    }
+}
+
 // ============ GAME LOOP ============
 function loop(time) {
     if (!running || paused) return;
@@ -559,6 +646,18 @@ function loop(time) {
 function update(dt) {
     const groundY = canvas.height * GROUND;
     
+    // Update cooldowns
+    for (let pid of [1, 2]) {
+        for (let u of UNITS_DATA) {
+            if (cooldowns[pid][u.id] > 0) {
+                cooldowns[pid][u.id] -= dt * 1000;
+                if (cooldowns[pid][u.id] < 0) cooldowns[pid][u.id] = 0;
+            }
+        }
+    }
+    updateCooldownUI();
+    
+    // Update units
     for (let pid of [1, 2]) {
         const p = players[pid];
         const enemy = players[pid === 1 ? 2 : 1];
@@ -674,24 +773,84 @@ function updateCombat(u, p, enemy, groundY, dt) {
     const cmd = p.cmd;
     const homeX = p.spawnX;
     const enemyX = enemy.spawnX;
+    const dir = p.dir;
     
-    if (cmd === 'garrison') {
-        if (Math.abs(u.x - homeX) > 50) {
-            u.x += (homeX > u.x ? 1 : -1) * u.spd;
-            u.state = 'move';
-            u.facing = homeX > u.x;
-        } else {
-            u.state = 'idle';
-        }
-        return;
-    }
-    
+    // Find nearest enemy
     let target = null, minD = Infinity;
     for (let e of enemy.units) {
         const d = Math.abs(e.x - u.x);
         if (d < minD) { minD = d; target = e; }
     }
     
+    // ========== GARRISON MODE ==========
+    if (cmd === 'garrison') {
+        const behindHouse = p.garrisonX;
+        
+        // Archers can still attack from garrison
+        if (u.ranged && target && minD <= u.range) {
+            u.state = 'attack';
+            u.facing = target.x > u.x;
+            
+            if (Date.now() - u.lastAtk > u.atkSpd) {
+                doAttack(u, target, enemy, groundY);
+                u.lastAtk = Date.now();
+            }
+            // Still move to garrison position while attacking
+            if (Math.abs(u.x - behindHouse) > 15) {
+                u.x += (behindHouse > u.x ? 1 : -1) * u.spd * 0.5;
+            }
+        } else {
+            // Move behind house
+            if (Math.abs(u.x - behindHouse) > 15) {
+                u.x += (behindHouse > u.x ? 1 : -1) * u.spd;
+                u.state = 'move';
+                u.facing = behindHouse > u.x;
+            } else {
+                u.state = 'idle';
+                u.facing = dir === 1;
+            }
+        }
+        return;
+    }
+    
+    // ========== DEFEND MODE ==========
+    if (cmd === 'defend') {
+        const defendPos = p.defendLine;
+        
+        // If enemy in range, attack
+        if (target && minD <= u.range) {
+            u.state = 'attack';
+            u.facing = target.x > u.x;
+            
+            if (Date.now() - u.lastAtk > u.atkSpd) {
+                doAttack(u, target, enemy, groundY);
+                u.lastAtk = Date.now();
+            }
+        } 
+        // If enemy approaching, move to intercept
+        else if (target && minD < 200) {
+            u.x += (target.x > u.x ? 1 : -1) * u.spd;
+            u.state = 'move';
+            u.facing = target.x > u.x;
+        }
+        // Move to defend line (in front of miners)
+        else {
+            const offset = (u.id === 'archer' || u.id === 'mage') ? -30 * dir : 0;
+            const targetPos = defendPos + offset;
+            
+            if (Math.abs(u.x - targetPos) > 20) {
+                u.x += (targetPos > u.x ? 1 : -1) * u.spd;
+                u.state = 'move';
+                u.facing = dir === 1;
+            } else {
+                u.state = 'idle';
+                u.facing = dir === 1;
+            }
+        }
+        return;
+    }
+    
+    // ========== ATTACK MODE ==========
     if (target && minD <= u.range) {
         u.state = 'attack';
         u.facing = target.x > u.x;
@@ -700,11 +859,12 @@ function updateCombat(u, p, enemy, groundY, dt) {
             doAttack(u, target, enemy, groundY);
             u.lastAtk = Date.now();
         }
-    } else if (target && (cmd === 'attack' || minD < 160)) {
+    } else if (target) {
         u.x += (target.x > u.x ? 1 : -1) * u.spd;
         u.state = 'move';
         u.facing = target.x > u.x;
-    } else if (cmd === 'attack') {
+    } else {
+        // Attack enemy statue
         if (Math.abs(u.x - enemyX) > u.range) {
             u.x += (enemyX > u.x ? 1 : -1) * u.spd;
             u.state = 'move';
@@ -717,8 +877,6 @@ function updateCombat(u, p, enemy, groundY, dt) {
                 effects.push({ type: 'hit', x: enemyX, y: groundY - 80, text: '-' + u.dmg, alpha: 1 });
             }
         }
-    } else {
-        u.state = 'idle';
     }
 }
 
@@ -749,21 +907,32 @@ function doAttack(u, target, enemy, groundY) {
 function updateAI(dt) {
     const ai = players[2];
     
-    if (Math.random() < 0.028) {
+    // Spawn with cooldown check
+    if (Math.random() < 0.04) {
         const types = ['miner', 'sword', 'archer', 'spear', 'mage', 'giant'];
         const weights = [0.32, 0.26, 0.18, 0.13, 0.07, 0.04];
         let r = Math.random(), c = 0;
         for (let i = 0; i < types.length; i++) {
             c += weights[i];
-            if (r < c) { spawnUnit(2, types[i]); break; }
+            if (r < c) { 
+                if (cooldowns[2][types[i]] <= 0) {
+                    spawnUnit(2, types[i]); 
+                }
+                break; 
+            }
         }
     }
     
     const combat = ai.units.filter(u => !u.isMiner).length;
-    if (combat >= 5 && ai.statue > 350) {
+    const miners = ai.units.filter(u => u.isMiner).length;
+    
+    // Smart AI commands
+    if (combat >= 6 && ai.statue > 400) {
         if (ai.cmd !== 'attack') setCommand(2, 'attack');
-    } else if (ai.statue < 250) {
+    } else if (ai.statue < 300 || combat < 2) {
         if (ai.cmd !== 'defend') setCommand(2, 'defend');
+    } else if (players[1].units.filter(u => !u.isMiner).length > combat + 3) {
+        if (ai.cmd !== 'garrison') setCommand(2, 'garrison');
     }
 }
 
@@ -808,6 +977,21 @@ function render() {
     
     ctx.save();
     ctx.scale(scale, 1);
+    
+    // Defend line indicators (subtle)
+    for (let pid of [1, 2]) {
+        const p = players[pid];
+        if (p.cmd === 'defend') {
+            ctx.strokeStyle = p.color + '40';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(p.defendLine, groundY - 80);
+            ctx.lineTo(p.defendLine, groundY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+    }
     
     // Mines
     for (let m of mines) {
@@ -868,51 +1052,37 @@ function render() {
         ctx.arc(x + 4, groundY - 84, 2.5, 0, Math.PI * 2);
         ctx.fill();
         
-        // ========== HEALTH BAR ==========
+        // Health Bar
         const barWidth = 70;
         const barHeight = 10;
         const barX = x - barWidth / 2;
         const barY = groundY - 125;
         const hpPercent = Math.max(0, p.statue / p.maxStatue);
         
-        // Background
         ctx.fillStyle = '#333';
         ctx.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
         
-        // Border
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.strokeRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
         
-        // Health fill
-        let hpColor;
-        if (hpPercent > 0.6) {
-            hpColor = '#2ecc71';
-        } else if (hpPercent > 0.3) {
-            hpColor = '#f39c12';
-        } else {
-            hpColor = '#e74c3c';
-        }
+        let hpColor = hpPercent > 0.6 ? '#2ecc71' : hpPercent > 0.3 ? '#f39c12' : '#e74c3c';
         
-        // Gradient health bar
         const hpGrad = ctx.createLinearGradient(barX, barY, barX, barY + barHeight);
         hpGrad.addColorStop(0, hpColor);
-        hpGrad.addColorStop(0.5, hpColor);
         hpGrad.addColorStop(1, shadeColor(hpColor, -30));
         ctx.fillStyle = hpGrad;
         ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
         
-        // HP Text
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 10px Arial';
         ctx.textAlign = 'center';
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
-        const hpText = Math.floor(p.statue) + ' / ' + p.maxStatue;
+        const hpText = Math.floor(p.statue) + '/' + p.maxStatue;
         ctx.strokeText(hpText, x, barY + barHeight - 1);
         ctx.fillText(hpText, x, barY + barHeight - 1);
         
-        // Player label
         ctx.font = 'bold 12px Arial';
         ctx.fillStyle = p.color;
         ctx.strokeStyle = '#000';
@@ -1001,14 +1171,12 @@ function drawUnit(u, color, groundY) {
     ctx.translate(x, groundY);
     ctx.scale(flip * unitScale, unitScale);
     
-    // Carrying gold
     if (u.carrying > 0) {
         ctx.font = '10px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('💰', 0, -u.h - 10);
     }
     
-    // Mining bar
     if (u.state === 'mine' && u.mineTime > 0) {
         ctx.fillStyle = '#333';
         ctx.fillRect(-10, -u.h - 8, 20, 3);
@@ -1018,13 +1186,11 @@ function drawUnit(u, color, groundY) {
     
     const h = -u.h;
     
-    // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath();
     ctx.ellipse(0, -1, 8, 3, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Head
     ctx.fillStyle = '#FDB';
     ctx.beginPath();
     ctx.arc(0, h + 6 + bob, 5, 0, Math.PI * 2);
@@ -1033,11 +1199,9 @@ function drawUnit(u, color, groundY) {
     ctx.lineWidth = 0.5;
     ctx.stroke();
     
-    // Headband
     ctx.fillStyle = color;
     ctx.fillRect(-5, h + 3 + bob, 10, 3);
     
-    // Body
     ctx.strokeStyle = u.color;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -1045,7 +1209,6 @@ function drawUnit(u, color, groundY) {
     ctx.lineTo(0, h + 24 + bob);
     ctx.stroke();
     
-    // Arms
     const armY = u.state === 'attack' ? 8 : 4;
     ctx.beginPath();
     ctx.moveTo(0, h + 14 + bob);
@@ -1054,7 +1217,6 @@ function drawUnit(u, color, groundY) {
     ctx.lineTo(-7, h + 14 + armY + bob);
     ctx.stroke();
     
-    // Legs
     const legOff = (u.state === 'move' || u.state === 'walk' || u.state === 'return') ? bob * 1.2 : 0;
     ctx.beginPath();
     ctx.moveTo(0, h + 24 + bob);
@@ -1063,7 +1225,6 @@ function drawUnit(u, color, groundY) {
     ctx.lineTo(4, -2 - legOff);
     ctx.stroke();
     
-    // Weapon
     ctx.lineWidth = 1.8;
     if (u.id === 'miner') {
         ctx.strokeStyle = '#654';
@@ -1117,7 +1278,6 @@ function drawUnit(u, color, groundY) {
     
     ctx.restore();
     
-    // HP bar
     if (u.hp < u.maxHp) {
         const barW = 18 * unitScale * scale;
         const pct = u.hp / u.maxHp;
